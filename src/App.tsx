@@ -6,6 +6,7 @@
 
 import React from "react";
 import Form from "./Form.tsx";
+import StatusBar from "./StatusBar.tsx";
 
 const App: React.FC = () => {
     return (
@@ -15,12 +16,7 @@ const App: React.FC = () => {
                     <h2>Create To-DO:</h2>
                     <Form />
                 </div>
-                <div className="statusBlock">
-                    <h2>Task status:</h2>
-                    <p>Created :</p>
-                    <p>On work :</p>
-                    <p>Done :</p>
-                </div>
+                <StatusBar />
             </div>
         </section>
     );
