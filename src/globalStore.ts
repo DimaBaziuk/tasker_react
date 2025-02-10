@@ -10,12 +10,13 @@ type GlobalStoreType = {
     createTask: (data: TaskType) => void;
     deleteTask: (id: number) => void;
     editTask: (id: number) => void;
+    updateTaskValues: (fieldName: string, value: string) => void;
 };
 
 const useGlobalStore = create<GlobalStoreType>()(
     devtools(
         persist(
-            (set) => ({
+            (set, get) => ({
                 task: {
                     name: "",
                     description: "",
@@ -26,12 +27,23 @@ const useGlobalStore = create<GlobalStoreType>()(
                 },
                 createTask: (data) => {
                     console.log("creting task:", data);
+                    setTimeout(() => {
+                        set((state) => ({
+                            ...state,
+                            task: { name: "", description: "" },
+                        }));
+                        console.log("state", get().task);
+                    }, 4000);
                 },
                 deleteTask: (id) => {
                     console.log("delete id", id);
                 },
                 editTask: (id) => {
                     console.log("delete id", id);
+                },
+                updateTaskValues: (fieldName, values) => {
+                    console.log(fieldName, values);
+                    set((state) => ({ ...state, values }));
                 },
             }),
             { name: "task-list-store" }
