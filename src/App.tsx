@@ -5,19 +5,16 @@
 // 4. Add Zustand/IndexDB.
 
 import React from "react";
-import Form from "./Form.tsx";
-import StatusBar from "./StatusBar.tsx";
+import CreationSection from "./CreationSection";
+import TaskRenderBar from "./TaskRenderBar";
 
 const App: React.FC = () => {
     return (
         <section className="main_container">
-            <div className="topBlock">
-                <div className="creationBlock">
-                    <h2>Create To-DO:</h2>
-                    <Form />
-                </div>
-                <StatusBar />
-            </div>
+            <CreationSection />
+            <section>
+                <TaskRenderBar />
+            </section>
         </section>
     );
 };

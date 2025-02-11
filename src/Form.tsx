@@ -11,6 +11,7 @@ type FieldType = {
 };
 
 const TodoForm: React.FC = () => {
+    const [form] = Form.useForm();
     const { name, description } = useGlobalStore((state) => state.task);
     const createNewTask = useGlobalStore((state) => state.createTask);
     const [initValues, setInitValues] = useState<TaskType | null>(null);
@@ -23,6 +24,7 @@ const TodoForm: React.FC = () => {
             name: values!.name || "",
             description: values!.description || "",
         };
+        form.resetFields();
         createNewTask(data);
     };
 
@@ -40,7 +42,7 @@ const TodoForm: React.FC = () => {
         <Form
             id="createForm"
             name="basic"
-            initialValues={{ remember: true }}
+            form={form}
             onFinish={onFinish}
             onFinishFailed={onFinishFailed}
             autoComplete="off"

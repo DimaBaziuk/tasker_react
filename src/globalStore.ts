@@ -20,27 +20,43 @@ const useGlobalStore = create<GlobalStoreType>()(
                 task: {
                     name: "",
                     description: "",
+                    status: "created",
                 },
                 taskList: [],
+
                 getTask: () => {
                     set((state) => ({ ...state }));
                 },
+
                 createTask: (data) => {
                     console.log("creting task:", data);
                     setTimeout(() => {
                         set((state) => ({
                             ...state,
-                            task: { name: "", description: "" },
+                            taskList: [...state.taskList, data],
+                            task: {
+                                name: "",
+                                description: "",
+                                status: "created",
+                            },
                         }));
-                        console.log("state", get().task);
+                        console.log(
+                            "state",
+                            get().task,
+                            "taskList:",
+                            get().taskList
+                        );
                     }, 4000);
                 },
-                deleteTask: (id) => {
-                    console.log("delete id", id);
-                },
+
                 editTask: (id) => {
                     console.log("delete id", id);
                 },
+
+                deleteTask: (id) => {
+                    console.log("delete id", id);
+                },
+
                 updateTaskValues: (fieldName, values) => {
                     console.log(fieldName, values);
                     set((state) => ({ ...state, values }));
