@@ -12,9 +12,7 @@ const App: React.FC = () => {
     return (
         <section className="main_container">
             <CreationSection />
-            <section>
-                <TaskRenderBar />
-            </section>
+            <TaskRenderBar />
         </section>
     );
 };
