@@ -41,3 +41,46 @@
         }
     }
 }
+
+.taskGrid {
+    margin-top: 50px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-gap: 20px;
+    .taskBlockName {
+        text-align: center;
+    }
+    .taskList {
+        padding: 5px;
+        .topBlock {
+            margin-top: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            grid-gap: inherit;
+
+            .nameBlock {
+                color: #242424;
+                max-width: 70%;
+                overflow-y: hidden;
+            }
+        }
+        .descriptionBlock {
+            margin-top: 5px;
+            color: #242424;
+        }
+        border-radius: 10px;
+        background-color: #ffffff;
+        .taskBar {
+            padding: 5px;
+            border: 1px solid #8f8383;
+            border-radius: 5px;
+            &:hover {
+                -webkit-box-shadow: 0px 0px 5px 1px rgba(0, 0, 0, 0.75);
+                -moz-box-shadow: 0px 0px 5px 1px rgba(0, 0, 0, 0.75);
+                box-shadow: 0px 0px 5px 1px rgba(0, 0, 0, 0.75);
+                cursor: pointer;
+            }
+        }
+    }
+}

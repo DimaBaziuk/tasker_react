@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import useGlobalStore from "./globalStore";
 
 import { TaskType } from "./taskType";
+import TaskList from "./TaskList";
 
 const TaskRenderBar: React.FC = () => {
     const taskList = useGlobalStore((store) => store.taskList);
@@ -36,7 +37,13 @@ const TaskRenderBar: React.FC = () => {
         setFiltered(filteredList);
     }, [taskList]);
 
-    return <section></section>;
+    return (
+        <section className="taskGrid">
+            <TaskList dataTask={filtered.created} listName="Created" />
+            <TaskList dataTask={filtered.working} listName="Working" />
+            <TaskList dataTask={filtered.done} listName="Done" />
+        </section>
+    );
 };
 
 export default TaskRenderBar;

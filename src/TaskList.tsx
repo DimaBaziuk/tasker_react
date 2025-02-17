@@ -18,7 +18,11 @@ const TaskList: React.FC<TaskListType> = ({ dataTask, listName }) => {
                             <TaskBar task={task} />
                         ))}
                     </>
-                ) : null}
+                ) : (
+                    <div>
+                        <p>empty list</p>
+                    </div>
+                )}
             </div>
         </div>
     );

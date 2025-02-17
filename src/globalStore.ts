@@ -13,6 +13,22 @@ type GlobalStoreType = {
     updateTaskValues: (fieldName: string, value: string) => void;
 };
 
+const JSON = [
+    { id: "1", name: "test1", description: "test test", status: "created" },
+    {
+        id: "2",
+        name: "test2",
+        description: "test test test",
+        status: "working",
+    },
+    {
+        id: "3",
+        name: "test3",
+        description: "test test test test",
+        status: "done",
+    },
+];
+
 const useGlobalStore = create<GlobalStoreType>()(
     devtools(
         persist(
@@ -22,7 +38,7 @@ const useGlobalStore = create<GlobalStoreType>()(
                     description: "",
                     status: "created",
                 },
-                taskList: [],
+                taskList: JSON,
 
                 getTask: () => {
                     set((state) => ({ ...state }));
