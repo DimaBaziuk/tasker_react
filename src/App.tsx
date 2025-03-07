@@ -1,8 +1,7 @@
 // Create:
-// 1. Form to create new todo/task.
-// 2. Create 3 columns for d-n-d.
-// 3. Make d-n-d for moving.
-// 4. Add Zustand/IndexDB.
+// 1. Create 3 columns for d-n-d.
+// 2. Make d-n-d for moving.
+// 3. Add Zustand/IndexedDB.
 
 import React from "react";
 import CreationSection from "./CreationSection";

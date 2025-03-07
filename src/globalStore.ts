@@ -1,10 +1,11 @@
 import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
+import { devtools } from "zustand/middleware";
 
 import { TaskType } from "./taskType";
 
 type GlobalStoreType = {
     task: TaskType;
+    isLoad: boolean;
     taskList: TaskType[];
     getTask: () => void;
     createTask: (data: TaskType) => void;
@@ -13,74 +14,52 @@ type GlobalStoreType = {
     updateTaskValues: (fieldName: string, value: string) => void;
 };
 
-const JSON = [
-    { id: "1", name: "test1", description: "test test", status: "created" },
-    {
-        id: "2",
-        name: "test2",
-        description: "test test test",
-        status: "working",
-    },
-    {
-        id: "3",
-        name: "test3",
-        description: "test test test test",
-        status: "done",
-    },
-];
-
 const useGlobalStore = create<GlobalStoreType>()(
-    devtools(
-        persist(
-            (set, get) => ({
-                task: {
-                    name: "",
-                    description: "",
-                    status: "created",
-                },
-                taskList: JSON,
+    devtools((set, get) => ({
+        task: {
+            name: "",
+            description: "",
+            status: "created",
+        },
+        isLoad: true,
+        taskList: [],
 
-                getTask: () => {
-                    set((state) => ({ ...state }));
-                },
+        getTask: () => {
+            set((state) => ({ ...state }));
+        },
 
-                createTask: (data) => {
-                    console.log("creting task:", data);
-                    setTimeout(() => {
-                        set((state) => ({
-                            ...state,
-                            taskList: [...state.taskList, data],
-                            task: {
-                                name: "",
-                                description: "",
-                                status: "created",
-                            },
-                        }));
-                        console.log(
-                            "state",
-                            get().task,
-                            "taskList:",
-                            get().taskList
-                        );
-                    }, 4000);
-                },
+        createTask: (data) => {
+            console.log("creting task:", data);
+            set((state) => ({ ...state, isLoad: false }));
 
-                editTask: (id) => {
-                    console.log("delete id", id);
-                },
+            setTimeout(() => {
+                set((state) => ({
+                    ...state,
+                    taskList: [...state.taskList, data],
+                    task: {
+                        name: "",
+                        description: "",
+                        status: "created",
+                    },
+                    isLoad: true,
+                }));
+                console.log("state", get().task, "taskList:", get().taskList);
+            }, 4000);
+        },
 
-                deleteTask: (id) => {
-                    console.log("delete id", id);
-                },
+        editTask: (id) => {
+            console.log("delete id", id);
+        },
 
-                updateTaskValues: (fieldName, values) => {
-                    console.log(fieldName, values);
-                    set((state) => ({ ...state, values }));
-                },
-            }),
-            { name: "task-list-store" }
-        )
-    )
+        deleteTask: (id) => {
+            console.log("delete id", id);
+        },
+
+        updateTaskValues: (fieldName, values) => {
+            console.log(fieldName, values);
+            set((state) => ({ ...state, values }));
+        },
+    }))
 );
 
 export default useGlobalStore;

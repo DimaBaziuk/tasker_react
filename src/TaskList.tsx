@@ -15,11 +15,11 @@ const TaskList: React.FC<TaskListType> = ({ dataTask, listName }) => {
                 {dataTask.length ? (
                     <>
                         {dataTask.map((task) => (
-                            <TaskBar task={task} />
+                            <TaskBar task={task} key={task.id} />
                         ))}
                     </>
                 ) : (
-                    <div>
+                    <div className="emtyListBlock">
                         <p>empty list</p>
                     </div>
                 )}

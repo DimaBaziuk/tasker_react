@@ -6,6 +6,7 @@ import TaskList from "./TaskList";
 
 const TaskRenderBar: React.FC = () => {
     const taskList = useGlobalStore((store) => store.taskList);
+    const isLoad = useGlobalStore((store) => store.isLoad);
 
     const [filtered, setFiltered] = useState<{
         created: TaskType[];
@@ -18,6 +19,7 @@ const TaskRenderBar: React.FC = () => {
     });
 
     useEffect(() => {
+        console.log("task list", taskList);
         const filteredList = {
             created: [] as TaskType[],
             working: [] as TaskType[],
@@ -35,13 +37,17 @@ const TaskRenderBar: React.FC = () => {
         });
 
         setFiltered(filteredList);
-    }, [taskList]);
+    }, [taskList, isLoad]);
 
     return (
         <section className="taskGrid">
-            <TaskList dataTask={filtered.created} listName="Created" />
-            <TaskList dataTask={filtered.working} listName="Working" />
-            <TaskList dataTask={filtered.done} listName="Done" />
+            {isLoad ? (
+                <>
+                    <TaskList dataTask={filtered.created} listName="Created" />
+                    <TaskList dataTask={filtered.working} listName="Working" />
+                    <TaskList dataTask={filtered.done} listName="Done" />
+                </>
+            ) : null}
         </section>
     );
 };
