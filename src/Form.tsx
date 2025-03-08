@@ -8,6 +8,7 @@ import { TaskType } from "./taskType";
 type FieldType = {
     name?: string;
     description?: string;
+    status?: string;
 };
 
 const TodoForm: React.FC = () => {
@@ -22,6 +23,7 @@ const TodoForm: React.FC = () => {
         const data = {
             id: String(randomId),
             name: values!.name || "",
+            status: "created",
             description: values!.description || "",
         };
         form.resetFields();

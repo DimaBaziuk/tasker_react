@@ -51,7 +51,12 @@
         text-align: center;
     }
     .taskList {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        grid-gap: 5px;
         padding: 5px;
+        border-radius: 10px;
+        background-color: #ffffff;
         .topBlock {
             margin-top: 0;
             display: flex;
@@ -69,8 +74,6 @@
             margin-top: 5px;
             color: #242424;
         }
-        border-radius: 10px;
-        background-color: #ffffff;
         .taskBar {
             padding: 5px;
             border: 1px solid #8f8383;

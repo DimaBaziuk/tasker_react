@@ -10,7 +10,7 @@ type GlobalStoreType = {
     getTask: () => void;
     createTask: (data: TaskType) => void;
     deleteTask: (id: number) => void;
-    editTask: (id: number) => void;
+    editTask: (id: number, status: string) => void;
     updateTaskValues: (fieldName: string, value: string) => void;
 };
 
@@ -29,26 +29,26 @@ const useGlobalStore = create<GlobalStoreType>()(
         },
 
         createTask: (data) => {
-            console.log("creting task:", data);
-            set((state) => ({ ...state, isLoad: false }));
+            console.log("Creating task:", data);
+
+            // Ensure a new reference for Zustand's shallow equality check
+            set((state) => ({
+                ...state,
+                isLoad: false,
+                taskList: [...state.taskList, data], // ✅ New array reference
+            }));
 
             setTimeout(() => {
                 set((state) => ({
                     ...state,
-                    taskList: [...state.taskList, data],
-                    task: {
-                        name: "",
-                        description: "",
-                        status: "created",
-                    },
                     isLoad: true,
                 }));
-                console.log("state", get().task, "taskList:", get().taskList);
-            }, 4000);
+                console.log("Updated state:", get().taskList);
+            }, 2000);
         },
 
-        editTask: (id) => {
-            console.log("delete id", id);
+        editTask: (id, status) => {
+            console.log("delete id", id, status);
         },
 
         deleteTask: (id) => {

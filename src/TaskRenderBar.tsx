@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Flex, Spin } from "antd";
 import useGlobalStore from "./globalStore";
 
 import { TaskType } from "./taskType";
@@ -47,7 +48,11 @@ const TaskRenderBar: React.FC = () => {
                     <TaskList dataTask={filtered.working} listName="Working" />
                     <TaskList dataTask={filtered.done} listName="Done" />
                 </>
-            ) : null}
+            ) : (
+                <Flex align="center" gap="middle">
+                    <Spin size="large" />
+                </Flex>
+            )}
         </section>
     );
 };
