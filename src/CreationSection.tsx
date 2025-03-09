@@ -1,6 +1,5 @@
 import React from "react";
 import Form from "./Form.tsx";
-import StatusBar from "./StatusBar.tsx";
 
 const CreationSection: React.FC = () => {
     return (
@@ -9,7 +8,6 @@ const CreationSection: React.FC = () => {
                 <h2>Create To-DO:</h2>
                 <Form />
             </div>
-            <StatusBar />
         </div>
     );
 };

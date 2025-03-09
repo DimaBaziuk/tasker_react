@@ -21,9 +21,12 @@
 
 .topBlock {
     margin-top: 40px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-gap: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .creationBlock {
+        width: 620px;
+    }
     h2 {
         margin-top: 0;
     }

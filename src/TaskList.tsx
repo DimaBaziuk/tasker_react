@@ -10,7 +10,9 @@ type TaskListType = {
 const TaskList: React.FC<TaskListType> = ({ dataTask, listName }) => {
     return (
         <div className="tasklistBlock">
-            <h3 className="taskBlockName">{listName}</h3>
+            <h3 className="taskBlockName">
+                {listName} {dataTask.length}
+            </h3>
             <div className="taskList">
                 {dataTask.length ? (
                     <>
