@@ -2,6 +2,8 @@ import React from "react";
 import { Button } from "antd";
 import { TaskType } from "./taskType";
 
+import useGlobalStore from "./globalStore";
+
 import {
     DeleteOutlined,
     CheckSquareOutlined,
@@ -13,6 +15,7 @@ type taskT = {
 };
 
 const TaskBar: React.FC<taskT> = ({ task }) => {
+    const deleteTask = useGlobalStore((store) => store.deleteTask);
     return (
         <div className="taskBar">
             <div className="topBlock">
@@ -24,7 +27,7 @@ const TaskBar: React.FC<taskT> = ({ task }) => {
                     <Button title="Working">
                         <OrderedListOutlined style={{ color: "#0707a4" }} />
                     </Button>
-                    <Button title="Delete">
+                    <Button title="Delete" onClick={() => deleteTask(task.id!)}>
                         <DeleteOutlined style={{ color: "#f60606" }} />
                     </Button>
                 </div>

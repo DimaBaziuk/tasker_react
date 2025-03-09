@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 import { TaskType } from "./taskType";
+import TaskList from "./TaskList";
 
 type GlobalStoreType = {
     task: TaskType;
@@ -9,9 +10,8 @@ type GlobalStoreType = {
     taskList: TaskType[];
     getTask: () => void;
     createTask: (data: TaskType) => void;
-    deleteTask: (id: number) => void;
+    deleteTask: (id: string) => void;
     editTask: (id: number, status: string) => void;
-    updateTaskValues: (fieldName: string, value: string) => void;
 };
 
 const useGlobalStore = create<GlobalStoreType>()(
@@ -53,11 +53,11 @@ const useGlobalStore = create<GlobalStoreType>()(
 
         deleteTask: (id) => {
             console.log("delete id", id);
-        },
+            const newList = get().taskList.filter((item) => {
+                return item.id !== id;
+            });
 
-        updateTaskValues: (fieldName, values) => {
-            console.log(fieldName, values);
-            set((state) => ({ ...state, values }));
+            set((state) => ({ ...state, taskList: newList }));
         },
     }))
 );
