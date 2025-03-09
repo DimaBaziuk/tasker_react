@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 import { TaskType } from "./taskType";
-import TaskList from "./TaskList";
 
 type GlobalStoreType = {
     task: TaskType;
@@ -11,7 +10,7 @@ type GlobalStoreType = {
     getTask: () => void;
     createTask: (data: TaskType) => void;
     deleteTask: (id: string) => void;
-    editTask: (id: number, status: string) => void;
+    editTask: (id: string, status: string) => void;
 };
 
 const useGlobalStore = create<GlobalStoreType>()(
@@ -35,7 +34,7 @@ const useGlobalStore = create<GlobalStoreType>()(
             set((state) => ({
                 ...state,
                 isLoad: false,
-                taskList: [...state.taskList, data], // ✅ New array reference
+                taskList: [...state.taskList, data],
             }));
 
             setTimeout(() => {
@@ -48,7 +47,13 @@ const useGlobalStore = create<GlobalStoreType>()(
         },
 
         editTask: (id, status) => {
-            console.log("delete id", id, status);
+            console.log("edited id", id, status);
+
+            const updatedList = get().taskList.map((item) =>
+                item.id === id ? { ...item, status } : item
+            );
+
+            set((state) => ({ ...state, taskList: updatedList }));
         },
 
         deleteTask: (id) => {
