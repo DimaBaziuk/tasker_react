@@ -1,7 +1,3 @@
-// Create:
-// 1. Create 3 columns for d-n-d.
-// 2. Make d-n-d for moving.
-// 3. Add Zustand/IndexedDB.
 
 import React from "react";
 import CreationSection from "./CreationSection";
