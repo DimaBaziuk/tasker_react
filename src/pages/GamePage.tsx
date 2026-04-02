@@ -20,9 +20,10 @@ const sleep = (duration: number) =>
 
 interface GamePageProps {
 	rooms: RoomDefinition[];
+	onRegenerateRooms: () => void;
 }
 
-const GamePage = ({ rooms }: GamePageProps) => {
+const GamePage = ({ rooms, onRegenerateRooms }: GamePageProps) => {
 	const navigate = useNavigate();
 	const { roomId } = useParams<{ roomId: string }>();
 	const selectedRoom = useMemo(
@@ -123,6 +124,11 @@ const GamePage = ({ rooms }: GamePageProps) => {
 		setGameState('ready');
 		setShowGameOverModal(false);
 		setMessage(selectedRoom.hintSummary);
+	};
+
+	const regenerateLevel = () => {
+		setShowGameOverModal(false);
+		onRegenerateRooms();
 	};
 
 	const runSequence = async () => {
@@ -277,6 +283,14 @@ const GamePage = ({ rooms }: GamePageProps) => {
 				<div className='heroStats'>
 					<span>Спроб: {attemptsLeft}</span>
 					<span>Кроків: {selectedRoom.solutionMoves.length}</span>
+					<button
+						type='button'
+						className='ghostButton'
+						onClick={regenerateLevel}
+						disabled={gameState === 'running'}
+					>
+						Перегенерувати рівень
+					</button>
 					<button
 						type='button'
 						className='ghostButton'

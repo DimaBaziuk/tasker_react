@@ -22,7 +22,15 @@ const App = () => {
 					/>
 				}
 			/>
-			<Route path='/game/:roomId' element={<GamePage rooms={rooms} />} />
+			<Route
+				path='/game/:roomId'
+				element={
+					<GamePage
+						rooms={rooms}
+						onRegenerateRooms={regenerateRooms}
+					/>
+				}
+			/>
 			<Route path='*' element={<Navigate to='/' replace />} />
 		</Routes>
 	);
