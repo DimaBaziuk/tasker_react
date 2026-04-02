@@ -174,6 +174,12 @@ export function createRooms(): RoomDefinition[] {
     return ROOM_PRESETS.map((preset) => buildRoom(preset));
 }
 
+export function createRoom(roomId: string): RoomDefinition | null {
+    const preset = ROOM_PRESETS.find((room) => room.id === roomId);
+
+    return preset ? buildRoom(preset) : null;
+}
+
 function buildRoom(preset: (typeof ROOM_PRESETS)[number]): RoomDefinition {
     let generatedObstacles: Point[] = [];
     let generatedDecorations: Decoration[] = [];

@@ -21,9 +21,14 @@ const sleep = (duration: number) =>
 interface GamePageProps {
 	rooms: RoomDefinition[];
 	onRegenerateRooms: () => void;
+	onRoomOutcome: (roomId: string, outcome: 'success' | 'failure') => void;
 }
 
-const GamePage = ({ rooms, onRegenerateRooms }: GamePageProps) => {
+const GamePage = ({
+	rooms,
+	onRegenerateRooms,
+	onRoomOutcome,
+}: GamePageProps) => {
 	const navigate = useNavigate();
 	const { roomId } = useParams<{ roomId: string }>();
 	const selectedRoom = useMemo(
@@ -184,6 +189,7 @@ const GamePage = ({ rooms, onRegenerateRooms }: GamePageProps) => {
 				setGameState('ready');
 				setShowGameOverModal(true);
 				setMessage('Спробуйте повторити рівень ще раз.');
+				onRoomOutcome(selectedRoom.id, 'failure');
 				return;
 			}
 
@@ -192,6 +198,7 @@ const GamePage = ({ rooms, onRegenerateRooms }: GamePageProps) => {
 				setMessage(
 					`${selectedRoom.successTitle}: ${selectedRoom.successMessage}`,
 				);
+				onRoomOutcome(selectedRoom.id, 'success');
 				return;
 			}
 		}
