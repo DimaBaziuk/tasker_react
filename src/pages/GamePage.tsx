@@ -257,7 +257,9 @@ const GamePage = ({ rooms, onRegenerateRooms }: GamePageProps) => {
 								</span>
 							) : null}
 							{isObstacle ? (
-								<span className='cell__obstacle'>🧱</span>
+								<span className='cell__obstacle'>
+									{selectedRoom.obstacleEmoji}
+								</span>
 							) : null}
 							{isCurrent ? (
 								<span className='cell__hero'>
@@ -281,8 +283,20 @@ const GamePage = ({ rooms, onRegenerateRooms }: GamePageProps) => {
 				</div>
 
 				<div className='heroStats'>
-					<span>Спроб: {attemptsLeft}</span>
-					<span>Кроків: {selectedRoom.solutionMoves.length}</span>
+					<span
+						style={{
+							alignSelf: 'center',
+						}}
+					>
+						Спроб: {attemptsLeft}
+					</span>
+					<span
+						style={{
+							alignSelf: 'center',
+						}}
+					>
+						Кроків: {selectedRoom.solutionMoves.length}
+					</span>
 					<button
 						type='button'
 						className='ghostButton'

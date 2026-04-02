@@ -34,6 +34,7 @@ export interface RoomDefinition {
     start: Point;
     exit: Point;
     obstacles: Point[];
+    obstacleEmoji: string;
     decorations: Decoration[];
     solutionMoves: MoveId[];
     description: string;
@@ -77,9 +78,10 @@ const ROOM_PRESETS = [
         characterLabel: "Хлопець",
         characterEmoji: "👦",
         gridSize: 7,
-        obstacleCount: 4,
+        obstacleCount: 6,
         start: { x: 0, y: 6 },
         exit: { x: 6, y: 0 },
+        obstacleEmoji: "🧱",
         description: "Перший маршрут для знайомства з блоками: рухайся обережно, але сміливо.",
         successTitle: "Чудово!",
         successMessage: "Ти провів героя до виходу без жодного зіткнення.",
@@ -104,6 +106,7 @@ const ROOM_PRESETS = [
         obstacleCount: 12,
         start: { x: 0, y: 7 },
         exit: { x: 7, y: 1 },
+        obstacleEmoji: "🧱",
         description: "Тут більше перешкод, тож маршрут треба будувати акуратніше.",
         successTitle: "Супер!",
         successMessage: "Маршрут спрацював, а героїня дісталась до виходу.",
@@ -125,9 +128,10 @@ const ROOM_PRESETS = [
         characterLabel: "Тваринка",
         characterEmoji: "🐾",
         gridSize: 9,
-        obstacleCount: 13,
+        obstacleCount: 16,
         start: { x: 0, y: 8 },
         exit: { x: 8, y: 0 },
+        obstacleEmoji: "🌲",
         description: "Більше перешкод, більше уважності та більше місця для тренування логіки.",
         successTitle: "Вітаємо!",
         successMessage: "Ти пройшов найскладнішу кімнату і навчив героя мислити крок за кроком.",
@@ -230,6 +234,7 @@ function buildRoom(preset: (typeof ROOM_PRESETS)[number]): RoomDefinition {
         start: preset.start,
         exit: preset.exit,
         obstacles: generatedObstacles,
+        obstacleEmoji: preset.obstacleEmoji,
         decorations: generatedDecorations,
         solutionMoves,
         description: preset.description,
