@@ -126,7 +126,7 @@ const ROOM_PRESETS = [
         difficultyKey: "hard" as DifficultyKey,
         difficultyLabel: "Складний рівень",
         characterLabel: "Тваринка",
-        characterEmoji: "🐾",
+        characterEmoji: "🦝",
         gridSize: 9,
         obstacleCount: 16,
         start: { x: 0, y: 8 },
