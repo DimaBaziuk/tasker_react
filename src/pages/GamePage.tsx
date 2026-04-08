@@ -213,9 +213,7 @@ const GamePage = ({
 				setMessage(
 					`${selectedRoom.successTitle}: ${selectedRoom.successMessage}`,
 				);
-				onRoomOutcome(selectedRoom.id, 'success', [
-					...collectedInRun,
-				]);
+				onRoomOutcome(selectedRoom.id, 'success', [...collectedInRun]);
 				return;
 			}
 		}

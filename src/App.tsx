@@ -33,7 +33,9 @@ const getInitialSession = (): PlayerSession | null => {
 	try {
 		const parsed = JSON.parse(saved) as Partial<PlayerSession>;
 		const collectedEmojis = Array.isArray(parsed.collectedEmojis)
-			? parsed.collectedEmojis.filter((item): item is string => typeof item === 'string')
+			? parsed.collectedEmojis.filter(
+					(item): item is string => typeof item === 'string',
+				)
 			: [];
 
 		if (
@@ -139,7 +141,11 @@ const App = () => {
 		const roomScore = SCORE_BY_ROOM[roomId] ?? 0;
 		const nextScore = score + roomScore;
 		const nextCollectedEmojis = [
-			...new Set([...collectedEmojis, ...pendingLevelEmojis, ...roomEmojis]),
+			...new Set([
+				...collectedEmojis,
+				...pendingLevelEmojis,
+				...roomEmojis,
+			]),
 		];
 		setScore(nextScore);
 		setCollectedEmojis(nextCollectedEmojis);
@@ -232,13 +238,12 @@ const App = () => {
 					<p className='playerHud__collectionLabel'>Колекція</p>
 					<div className='playerHud__collectionItems'>
 						{visibleEmojis.length === 0 ? (
-							<span className='playerHud__empty'>Поки порожньо</span>
+							<span className='playerHud__empty'>
+								Поки порожньо
+							</span>
 						) : (
 							visibleEmojis.map((emoji) => (
-								<span
-									key={emoji}
-									className='playerHud__emoji'
-								>
+								<span key={emoji} className='playerHud__emoji'>
 									{emoji}
 								</span>
 							))
