@@ -111,6 +111,53 @@ button:disabled {
 	font-weight: 700;
 }
 
+.playerHud__collection {
+	margin-top: 4px;
+	padding-top: 6px;
+	border-top: 1px dashed rgba(23, 49, 61, 0.16);
+}
+
+.playerHud__collectionLabel {
+	margin: 0;
+	font-size: 0.72rem;
+	font-weight: 800;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.playerHud__collectionItems {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 6px;
+	max-width: 220px;
+}
+
+.playerHud__emoji,
+.playerHud__empty {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 28px;
+	height: 28px;
+	border-radius: 10px;
+	background: rgba(44, 159, 147, 0.1);
+}
+
+.playerHud__emoji {
+	font-size: 1rem;
+	line-height: 1;
+}
+
+.playerHud__empty {
+	padding: 0 8px;
+	font-size: 0.74rem;
+	font-weight: 700;
+	color: var(--muted);
+	min-width: auto;
+}
+
 .playerHud__reset {
 	margin-top: 4px;
 	padding: 8px 10px;

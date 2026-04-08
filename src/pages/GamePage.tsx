@@ -21,13 +21,19 @@ const sleep = (duration: number) =>
 interface GamePageProps {
 	rooms: RoomDefinition[];
 	onRegenerateRooms: () => void;
-	onRoomOutcome: (roomId: string, outcome: 'success' | 'failure') => void;
+	onRoomOutcome: (
+		roomId: string,
+		outcome: 'success' | 'failure',
+		roomEmojis?: string[],
+	) => void;
+	onCollectEmoji: (emoji: string) => void;
 }
 
 const GamePage = ({
 	rooms,
 	onRegenerateRooms,
 	onRoomOutcome,
+	onCollectEmoji,
 }: GamePageProps) => {
 	const navigate = useNavigate();
 	const { roomId } = useParams<{ roomId: string }>();
@@ -150,6 +156,7 @@ const GamePage = ({
 
 		let currentPosition = selectedRoom.start;
 		const nextTrail: Point[] = [selectedRoom.start];
+		const collectedInRun = new Set<string>();
 		setPosition(selectedRoom.start);
 		setTrail(nextTrail);
 
@@ -159,6 +166,13 @@ const GamePage = ({
 			nextTrail.push(currentPosition);
 			setPosition(currentPosition);
 			setTrail([...nextTrail]);
+
+			const decoration = decorationLookup.get(pointKey(currentPosition));
+
+			if (decoration) {
+				collectedInRun.add(decoration.emoji);
+				onCollectEmoji(decoration.emoji);
+			}
 
 			const outOfBounds =
 				currentPosition.x < 0 ||
@@ -179,6 +193,7 @@ const GamePage = ({
 					setMessage(
 						`${selectedRoom.failureTitle}: ${selectedRoom.failureMessage} У тебе ще 1 спроба.`,
 					);
+					onRoomOutcome(selectedRoom.id, 'failure', []);
 					return;
 				}
 
@@ -189,7 +204,7 @@ const GamePage = ({
 				setGameState('ready');
 				setShowGameOverModal(true);
 				setMessage('Спробуйте повторити рівень ще раз.');
-				onRoomOutcome(selectedRoom.id, 'failure');
+				onRoomOutcome(selectedRoom.id, 'failure', []);
 				return;
 			}
 
@@ -198,7 +213,9 @@ const GamePage = ({
 				setMessage(
 					`${selectedRoom.successTitle}: ${selectedRoom.successMessage}`,
 				);
-				onRoomOutcome(selectedRoom.id, 'success');
+				onRoomOutcome(selectedRoom.id, 'success', [
+					...collectedInRun,
+				]);
 				return;
 			}
 		}
