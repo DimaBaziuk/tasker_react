@@ -79,6 +79,58 @@ button:disabled {
 	width: 100%;
 }
 
+.playerHud {
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	z-index: 40;
+	display: grid;
+	gap: 4px;
+	padding: 10px 12px;
+	border-radius: 14px;
+	border: 1px solid rgba(23, 49, 61, 0.12);
+	background: rgba(255, 255, 255, 0.94);
+	box-shadow: 0 12px 22px rgba(23, 49, 61, 0.18);
+	min-width: 160px;
+}
+
+.playerHud__name,
+.playerHud__score {
+	margin: 0;
+	line-height: 1.2;
+}
+
+.playerHud__name {
+	font-weight: 800;
+	color: var(--ink);
+}
+
+.playerHud__score {
+	font-size: 0.92rem;
+	color: var(--accent-2);
+	font-weight: 700;
+}
+
+.playerHud__reset {
+	margin-top: 4px;
+	padding: 8px 10px;
+	border: none;
+	border-radius: 10px;
+	font-size: 0.78rem;
+	font-weight: 800;
+	background: rgba(216, 91, 99, 0.12);
+	color: #8d2830;
+	transition:
+		transform 140ms ease,
+		background 140ms ease;
+}
+
+.playerHud__reset:hover,
+.playerHud__reset:focus-visible {
+	transform: translateY(-1px);
+	background: rgba(216, 91, 99, 0.2);
+}
+
 .appShell {
 	width: min(1380px, calc(100vw - 32px));
 	margin: 0 auto;
@@ -652,6 +704,10 @@ button:disabled {
 	border: 1px solid rgba(23, 49, 61, 0.08);
 }
 
+.modalCard--welcome {
+	text-align: left;
+}
+
 .modalCard h3 {
 	margin: 0;
 	font-size: 2rem;
@@ -677,6 +733,31 @@ button:disabled {
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
 	color: var(--accent-2);
+}
+
+.playerForm {
+	display: grid;
+	gap: 10px;
+	margin-top: 18px;
+}
+
+.playerForm label {
+	font-size: 0.9rem;
+	font-weight: 700;
+	color: var(--ink);
+}
+
+.playerForm input {
+	padding: 12px 14px;
+	border-radius: 12px;
+	border: 1px solid rgba(23, 49, 61, 0.2);
+	background: rgba(255, 255, 255, 0.96);
+	outline: none;
+}
+
+.playerForm input:focus {
+	border-color: rgba(44, 159, 147, 0.9);
+	box-shadow: 0 0 0 3px rgba(44, 159, 147, 0.16);
 }
 
 .primaryButton,
@@ -730,6 +811,13 @@ button:disabled {
 }
 
 @media (max-width: 720px) {
+	.playerHud {
+		top: 10px;
+		right: 10px;
+		min-width: 138px;
+		padding: 8px 10px;
+	}
+
 	.appShell {
 		width: min(100vw - 20px, 100vw);
 		padding: 18px 0 28px;
