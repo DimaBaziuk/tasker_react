@@ -80,10 +80,10 @@ button:disabled {
 }
 
 .playerHud {
-	position: absolute;
-	top: 14px;
-	right: 14px;
-	z-index: 40;
+	position: fixed;
+	top: max(14px, env(safe-area-inset-top));
+	right: max(14px, env(safe-area-inset-right));
+	z-index: 60;
 	display: grid;
 	gap: 4px;
 	padding: 10px 12px;
@@ -98,6 +98,14 @@ button:disabled {
 .playerHud__score {
 	margin: 0;
 	line-height: 1.2;
+}
+
+.playerHud__bonus {
+	margin: 0;
+	line-height: 1.2;
+	font-size: 0.78rem;
+	font-weight: 700;
+	color: #2b5966;
 }
 
 .playerHud__name {
@@ -239,6 +247,29 @@ button:disabled {
 	font-weight: 700;
 }
 
+.heroStats__hintButton {
+	padding: 10px 14px;
+	border: 1px solid rgba(23, 49, 61, 0.08);
+	border-radius: 999px;
+	background: rgba(44, 159, 147, 0.14);
+	color: #155a54;
+	font-size: 0.78rem;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	transition:
+		transform 140ms ease,
+		background 140ms ease,
+		box-shadow 140ms ease;
+}
+
+.heroStats__hintButton:hover,
+.heroStats__hintButton:focus-visible {
+	transform: translateY(-1px);
+	background: rgba(44, 159, 147, 0.22);
+	box-shadow: 0 10px 20px rgba(23, 49, 61, 0.1);
+}
+
 .eyebrow {
 	margin: 0 0 12px;
 	color: var(--accent-2);
@@ -342,6 +373,123 @@ button:disabled {
 .roomCard__cta {
 	margin-top: 22px;
 	background: rgba(255, 255, 255, 0.88);
+}
+
+.roomCard--routine {
+	background:
+		radial-gradient(
+			circle at 90% 12%,
+			rgba(255, 255, 255, 0.48),
+			transparent 40%
+		),
+		linear-gradient(
+			135deg,
+			rgba(204, 244, 230, 0.95),
+			rgba(176, 227, 255, 0.94)
+		);
+	box-shadow: 0 18px 38px rgba(58, 128, 154, 0.24);
+}
+
+.routineRoom {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 14px;
+	align-items: start;
+}
+
+.routineCard {
+	padding: 16px;
+	border-radius: 24px;
+	border: 1px solid rgba(23, 49, 61, 0.08);
+	background: rgba(255, 255, 255, 0.82);
+	box-shadow: var(--shadow);
+}
+
+.routineCard__header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 10px;
+	margin-bottom: 10px;
+}
+
+.routineCard__header h3 {
+	margin: 0;
+	font-size: 1rem;
+	line-height: 1.35;
+}
+
+.routineCard__score {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 8px 12px;
+	border-radius: 999px;
+	font-size: 0.82rem;
+	font-weight: 800;
+	background: rgba(44, 159, 147, 0.14);
+	color: #155a54;
+	white-space: nowrap;
+}
+
+.routineList {
+	display: grid;
+	gap: 8px;
+}
+
+.routineItem {
+	display: grid;
+	grid-template-columns: 1fr 66px;
+	align-items: center;
+	gap: 10px;
+	padding: 9px 10px;
+	border-radius: 14px;
+	background: rgba(255, 255, 255, 0.88);
+	border: 1px solid rgba(23, 49, 61, 0.08);
+}
+
+.routineItem--correct {
+	background: rgba(228, 247, 236, 0.95);
+	border-color: rgba(47, 153, 102, 0.42);
+}
+
+.routineItem--wrong {
+	background: rgba(252, 231, 233, 0.95);
+	border-color: rgba(216, 91, 99, 0.42);
+}
+
+.routineItem span {
+	font-size: 0.92rem;
+	font-weight: 700;
+	color: rgba(23, 49, 61, 0.88);
+}
+
+.routineItem select {
+	padding: 7px 8px;
+	border-radius: 10px;
+	border: 1px solid rgba(23, 49, 61, 0.22);
+	background: rgba(255, 255, 255, 0.96);
+	font-weight: 800;
+	text-align: center;
+}
+
+.routineItem select:focus {
+	outline: none;
+	border-color: rgba(44, 159, 147, 0.9);
+	box-shadow: 0 0 0 3px rgba(44, 159, 147, 0.14);
+}
+
+.routineCard__details {
+	margin: 10px 0 0;
+	color: var(--muted);
+	font-size: 0.86rem;
+	font-weight: 700;
+}
+
+.routineActions {
+	margin-top: 16px;
+	display: grid;
+	gap: 10px;
 }
 
 .gameLayout {
@@ -755,6 +903,20 @@ button:disabled {
 	text-align: left;
 }
 
+.modalCard--hint {
+	text-align: left;
+}
+
+.modalCard--hint h3 {
+	color: var(--ink);
+	font-size: 1.7rem;
+}
+
+.routineHintStory {
+	line-height: 1.6;
+	color: rgba(23, 49, 61, 0.84);
+}
+
 .modalCard h3 {
 	margin: 0;
 	font-size: 2rem;
@@ -848,6 +1010,7 @@ button:disabled {
 	}
 
 	.roomSelection,
+	.routineRoom,
 	.gameLayout {
 		grid-template-columns: 1fr;
 	}
@@ -879,6 +1042,10 @@ button:disabled {
 
 	.movePalette {
 		grid-template-columns: 1fr 1fr;
+	}
+
+	.routineItem {
+		grid-template-columns: 1fr 62px;
 	}
 
 	.board {

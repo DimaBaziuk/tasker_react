@@ -34,13 +34,33 @@ const HomePage = ({ rooms, onRegenerateRooms }: HomePageProps) => {
 				</div>
 
 				<div className='heroStats'>
-					<span>3 кімнати</span>
+					<span>4 кімнати</span>
 					<span>Підказки рухів</span>
-					<span>Рандомні перешкоди</span>
+					<span>Рандомні перешкоди + розпорядок дня</span>
 				</div>
 			</header>
 
 			<section className='roomSelection'>
+				<button
+					type='button'
+					className='roomCard roomCard--routine'
+					onClick={() => navigate('/routine-room')}
+				>
+					<span className='roomCard__badge'>Нова кімната</span>
+					<span className='roomCard__emoji'>🧠</span>
+					<h2>Щоденні справи</h2>
+					<p>
+						Три списки: ранок, обід і вечір. Відсортуй 7 пунктів у
+						правильному порядку та набери до 120 балів.
+					</p>
+					<div className='roomCard__facts'>
+						<span>3 частини дня</span>
+						<span>7 кроків у кожній</span>
+						<span>Максимум 120</span>
+					</div>
+					<span className='roomCard__cta'>Відкрити кімнату</span>
+				</button>
+
 				{rooms.map((room) => (
 					<button
 						key={room.id}
