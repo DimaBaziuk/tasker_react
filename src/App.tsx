@@ -1,20 +1,30 @@
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { useMemo, useRef, useState, type FormEvent } from 'react';
-import { createRoom, createRooms, type RoomDefinition } from './game';
+import {
+	LABYRINTH_COLLECTION_TARGET,
+	createRoom,
+	createRooms,
+	type RoomDefinition,
+} from './game';
 import GamePage from './pages/GamePage';
 import HomePage from './pages/HomePage';
+import RoutineRoomPage from './pages/RoutineRoomPage';
 
 const SCORE_BY_ROOM: Record<string, number> = {
 	'bright-start': 50,
 	'mirror-hall': 100,
 	'forest-labyrinth': 125,
+	'daily-routines': 0,
 };
 
 const STORAGE_KEY = 'tasker-player-session';
+const FULL_COLLECTION_BONUS = 350;
+const ROUTINE_ROOM_ID = 'daily-routines';
 
 interface PlayerSession {
 	playerName: string;
 	score: number;
+	routineRoomScore: number;
 	consecutiveWins: number;
 	collectedEmojis: string[];
 }
@@ -50,6 +60,10 @@ const getInitialSession = (): PlayerSession | null => {
 		return {
 			playerName: parsed.playerName.trim(),
 			score: Math.max(0, Math.floor(parsed.score)),
+			routineRoomScore:
+				typeof parsed.routineRoomScore === 'number'
+					? Math.max(0, Math.floor(parsed.routineRoomScore))
+					: 0,
 			consecutiveWins: Math.max(0, Math.floor(parsed.consecutiveWins)),
 			collectedEmojis,
 		};
@@ -66,6 +80,9 @@ const App = () => {
 		initialSession?.playerName ?? '',
 	);
 	const [score, setScore] = useState(initialSession?.score ?? 0);
+	const [routineRoomScore, setRoutineRoomScore] = useState(
+		initialSession?.routineRoomScore ?? 0,
+	);
 	const [nameInput, setNameInput] = useState(
 		initialSession?.playerName ?? '',
 	);
@@ -79,10 +96,20 @@ const App = () => {
 		() => [...new Set([...collectedEmojis, ...pendingLevelEmojis])],
 		[collectedEmojis, pendingLevelEmojis],
 	);
+	const collectedLabyrinthCount = useMemo(
+		() =>
+			LABYRINTH_COLLECTION_TARGET.filter((emoji) =>
+				collectedEmojis.includes(emoji),
+			).length,
+		[collectedEmojis],
+	);
+	const hasFullLabyrinthCollection =
+		collectedLabyrinthCount === LABYRINTH_COLLECTION_TARGET.length;
 
 	const persistSession = (
 		nextName: string,
 		nextScore: number,
+		nextRoutineRoomScore: number,
 		nextConsecutiveWins: number,
 		nextCollectedEmojis: string[],
 	) => {
@@ -93,6 +120,7 @@ const App = () => {
 		const payload: PlayerSession = {
 			playerName: nextName,
 			score: nextScore,
+			routineRoomScore: nextRoutineRoomScore,
 			consecutiveWins: nextConsecutiveWins,
 			collectedEmojis: nextCollectedEmojis,
 		};
@@ -104,7 +132,13 @@ const App = () => {
 		setRooms(createRooms());
 		consecutiveWinsRef.current = 0;
 		if (playerName) {
-			persistSession(playerName, score, 0, collectedEmojis);
+			persistSession(
+				playerName,
+				score,
+				routineRoomScore,
+				0,
+				collectedEmojis,
+			);
 		}
 	};
 
@@ -126,20 +160,49 @@ const App = () => {
 		roomId: string,
 		outcome: 'success' | 'failure',
 		roomEmojis: string[] = [],
+		scoreOverride?: number,
 	) => {
 		if (outcome === 'failure') {
 			setPendingLevelEmojis([]);
 			consecutiveWinsRef.current = 0;
 			if (playerName) {
-				persistSession(playerName, score, 0, collectedEmojis);
+				persistSession(
+					playerName,
+					score,
+					routineRoomScore,
+					0,
+					collectedEmojis,
+				);
 			}
+			return;
+		}
+
+		if (roomId === ROUTINE_ROOM_ID) {
+			const nextRoutineRoomScore = Math.max(
+				0,
+				Math.floor(scoreOverride ?? SCORE_BY_ROOM[roomId] ?? 0),
+			);
+			const nextScore = score - routineRoomScore + nextRoutineRoomScore;
+			setScore(nextScore);
+			setRoutineRoomScore(nextRoutineRoomScore);
+			setPendingLevelEmojis([]);
+
+			if (playerName) {
+				persistSession(
+					playerName,
+					nextScore,
+					nextRoutineRoomScore,
+					consecutiveWinsRef.current,
+					collectedEmojis,
+				);
+			}
+
 			return;
 		}
 
 		consecutiveWinsRef.current += 1;
 		const nextWins = consecutiveWinsRef.current;
-		const roomScore = SCORE_BY_ROOM[roomId] ?? 0;
-		const nextScore = score + roomScore;
+		const roomScore = scoreOverride ?? SCORE_BY_ROOM[roomId] ?? 0;
 		const nextCollectedEmojis = [
 			...new Set([
 				...collectedEmojis,
@@ -147,6 +210,15 @@ const App = () => {
 				...roomEmojis,
 			]),
 		];
+		const hadFullCollection = LABYRINTH_COLLECTION_TARGET.every((emoji) =>
+			collectedEmojis.includes(emoji),
+		);
+		const hasFullCollection = LABYRINTH_COLLECTION_TARGET.every((emoji) =>
+			nextCollectedEmojis.includes(emoji),
+		);
+		const collectionBonus =
+			!hadFullCollection && hasFullCollection ? FULL_COLLECTION_BONUS : 0;
+		const nextScore = score + roomScore + collectionBonus;
 		setScore(nextScore);
 		setCollectedEmojis(nextCollectedEmojis);
 		setPendingLevelEmojis([]);
@@ -155,6 +227,7 @@ const App = () => {
 			persistSession(
 				playerName,
 				nextScore,
+				routineRoomScore,
 				nextWins,
 				nextCollectedEmojis,
 			);
@@ -165,7 +238,13 @@ const App = () => {
 		}
 
 		if (playerName) {
-			persistSession(playerName, nextScore, 0, nextCollectedEmojis);
+			persistSession(
+				playerName,
+				nextScore,
+				routineRoomScore,
+				0,
+				nextCollectedEmojis,
+			);
 		}
 
 		const nextRoom = rooms.filter((room) => room.id !== roomId);
@@ -193,6 +272,7 @@ const App = () => {
 		persistSession(
 			cleanedName,
 			score,
+			routineRoomScore,
 			consecutiveWinsRef.current,
 			collectedEmojis,
 		);
@@ -217,6 +297,7 @@ const App = () => {
 		setPlayerName('');
 		setNameInput('');
 		setScore(0);
+		setRoutineRoomScore(0);
 		setCollectedEmojis([]);
 		setPendingLevelEmojis([]);
 		setShowNameModal(true);
@@ -234,6 +315,12 @@ const App = () => {
 			<div className='playerHud' aria-live='polite'>
 				<p className='playerHud__name'>{playerName || 'Гість'}</p>
 				<p className='playerHud__score'>Бали: {score}</p>
+				<p className='playerHud__bonus'>
+					Бонус за всі emoji: {FULL_COLLECTION_BONUS}{' '}
+					{hasFullLabyrinthCollection
+						? '(отримано)'
+						: `(прогрес ${collectedLabyrinthCount}/${LABYRINTH_COLLECTION_TARGET.length})`}
+				</p>
 				<div className='playerHud__collection'>
 					<p className='playerHud__collectionLabel'>Колекція</p>
 					<div className='playerHud__collectionItems'>
@@ -270,6 +357,12 @@ const App = () => {
 					}
 				/>
 				<Route
+					path='/routine-room'
+					element={
+						<RoutineRoomPage onRoomOutcome={handleRoomOutcome} />
+					}
+				/>
+				<Route
 					path='/game/:roomId'
 					element={
 						<GamePage
@@ -295,8 +388,8 @@ const App = () => {
 						<h3 id='welcome-title'>Введи ім'я гравця</h3>
 						<p>
 							1 кімната: 50 балів, 2 кімната: 100 балів, 3
-							кімната: 125 балів. Бали зараховуються після кожного
-							успішного проходження кімнати.
+							кімната: 125 балів, кімната "Щоденні справи": до 120
+							балів (по 40 за ранок, обід і вечір).
 						</p>
 
 						<form

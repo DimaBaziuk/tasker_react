@@ -51,17 +51,6 @@ export interface RoomDefinition {
     };
 }
 
-const DECORATION_POOL = [
-    { emoji: "📘", label: "Книжка" },
-    { emoji: "🧸", label: "Іграшка" },
-    { emoji: "⭐", label: "Зірка" },
-    { emoji: "🎲", label: "Кубик" },
-    { emoji: "🪁", label: "Кайт" },
-    { emoji: "🧩", label: "Пазл" },
-    { emoji: "🎈", label: "Кулька" },
-    { emoji: "🪄", label: "Паличка" },
-] as const;
-
 const DIRECTION_MAP: Record<MoveId, MoveDefinition> = {
     up: { id: "up", label: "Вгору", arrow: "↑", dx: 0, dy: -1 },
     down: { id: "down", label: "Вниз", arrow: "↓", dx: 0, dy: 1 },
@@ -82,6 +71,12 @@ const ROOM_PRESETS = [
         start: { x: 0, y: 6 },
         exit: { x: 6, y: 0 },
         obstacleEmoji: "🧱",
+        decorationPool: [
+            { emoji: "📘", label: "Книжка" },
+            { emoji: "🧸", label: "Іграшка" },
+            { emoji: "⭐", label: "Зірка" },
+            { emoji: "🎲", label: "Кубик" },
+        ],
         description: "Перший маршрут для знайомства з блоками: рухайся обережно, але сміливо.",
         successTitle: "Чудово!",
         successMessage: "Ти провів героя до виходу без жодного зіткнення.",
@@ -107,6 +102,12 @@ const ROOM_PRESETS = [
         start: { x: 0, y: 7 },
         exit: { x: 7, y: 1 },
         obstacleEmoji: "🧱",
+        decorationPool: [
+            { emoji: "🪁", label: "Кайт" },
+            { emoji: "🧩", label: "Пазл" },
+            { emoji: "🎈", label: "Кулька" },
+            { emoji: "🪄", label: "Паличка" },
+        ],
         description: "Тут більше перешкод, тож маршрут треба будувати акуратніше.",
         successTitle: "Супер!",
         successMessage: "Маршрут спрацював, а героїня дісталась до виходу.",
@@ -132,6 +133,16 @@ const ROOM_PRESETS = [
         start: { x: 0, y: 8 },
         exit: { x: 8, y: 0 },
         obstacleEmoji: "🌲",
+        decorationPool: [
+            { emoji: "🍄", label: "Гриб" },
+            { emoji: "🌿", label: "Гілочка" },
+            { emoji: "🦉", label: "Сова" },
+            { emoji: "🐾", label: "Сліди" },
+            { emoji: "🦊", label: "Лисичка" },
+            { emoji: "🍁", label: "Листок" },
+            { emoji: "🌰", label: "Горішок" },
+            { emoji: "🪵", label: "Колода" },
+        ],
         description: "Більше перешкод, більше уважності та більше місця для тренування логіки.",
         successTitle: "Вітаємо!",
         successMessage: "Ти пройшов найскладнішу кімнату і навчив героя мислити крок за кроком.",
@@ -146,6 +157,14 @@ const ROOM_PRESETS = [
         },
     },
 ] as const;
+
+export const LABYRINTH_COLLECTION_TARGET = Array.from(
+    new Set(
+        ROOM_PRESETS.flatMap((preset) =>
+            preset.decorationPool.map((item) => item.emoji),
+        ),
+    ),
+);
 
 export const MOVE_DEFINITIONS = Object.values(DIRECTION_MAP);
 
@@ -184,6 +203,7 @@ function buildRoom(preset: (typeof ROOM_PRESETS)[number]): RoomDefinition {
     let generatedObstacles: Point[] = [];
     let generatedDecorations: Decoration[] = [];
     let solutionMoves: MoveId[] = [];
+    const targetDecorationCount = 4 + Math.min(3, preset.obstacleCount - 3);
 
     for (let attempt = 0; attempt < 300; attempt += 1) {
         const blocked = new Set<string>();
@@ -211,7 +231,8 @@ function buildRoom(preset: (typeof ROOM_PRESETS)[number]): RoomDefinition {
                 preset.gridSize,
                 blocked,
                 path,
-                4 + Math.min(3, preset.obstacleCount - 3),
+                preset.decorationPool,
+                targetDecorationCount,
             );
             break;
         }
@@ -225,7 +246,13 @@ function buildRoom(preset: (typeof ROOM_PRESETS)[number]): RoomDefinition {
         }
 
         solutionMoves = pathToMoves(path);
-        generatedDecorations = generateDecorations(preset.gridSize, new Set(), path, 4);
+        generatedDecorations = generateDecorations(
+            preset.gridSize,
+            new Set(),
+            path,
+            preset.decorationPool,
+            targetDecorationCount,
+        );
     }
 
     return {
@@ -342,15 +369,22 @@ function pathToMoves(path: Point[]): MoveId[] {
     return moves;
 }
 
-function generateDecorations(size: number, blocked: Set<string>, path: Point[], count: number): Decoration[] {
+function generateDecorations(
+    size: number,
+    blocked: Set<string>,
+    path: Point[],
+    decorationPool: readonly { emoji: string; label: string }[],
+    count: number,
+): Decoration[] {
     const pathKeys = new Set(path.map(pointKey));
     const occupied = new Set<string>([...blocked, ...pathKeys]);
     const candidates = getAllCells(size).filter((cell) => !occupied.has(pointKey(cell)));
     const decorated: Decoration[] = [];
     const shuffled = shuffle(candidates);
+    const maxDecorations = Math.min(count, shuffled.length, decorationPool.length);
 
-    for (let index = 0; index < count && index < shuffled.length; index += 1) {
-        const source = DECORATION_POOL[index % DECORATION_POOL.length];
+    for (let index = 0; index < maxDecorations; index += 1) {
+        const source = decorationPool[index];
         decorated.push({
             id: `${source.label}-${index}`,
             point: shuffled[index],
