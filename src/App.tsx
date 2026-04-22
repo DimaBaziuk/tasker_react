@@ -1,9 +1,12 @@
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
-import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { logEvent } from 'firebase/analytics';
 import { createRoom, createRooms, type RoomDefinition } from './game';
 import GamePage from './pages/GamePage';
 import HomePage from './pages/HomePage';
 import RoutineRoomPage from './pages/RoutineRoomPage';
+import { initFirebaseAnalytics } from './firebase';
+import { useLocation } from 'react-router-dom';
 
 const SCORE_BY_ROOM: Record<string, number> = {
 	'bright-start': 50,
@@ -69,6 +72,7 @@ const getInitialSession = (): PlayerSession | null => {
 
 const App = () => {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const initialSession = getInitialSession();
 	const [rooms, setRooms] = useState<RoomDefinition[]>(() => createRooms());
 	const [playerName, setPlayerName] = useState(
@@ -112,6 +116,20 @@ const App = () => {
 	const hasFullLabyrinthCollection =
 		labyrinthCollectionTarget.length > 0 &&
 		collectedLabyrinthCount === labyrinthCollectionTarget.length;
+
+	useEffect(() => {
+		void initFirebaseAnalytics().then((analytics) => {
+			if (!analytics) {
+				return;
+			}
+
+			logEvent(analytics, 'page_view', {
+				page_title: document.title,
+				page_location: window.location.href,
+				page_path: `${location.pathname}${location.search}`,
+			});
+		});
+	}, [location.pathname, location.search]);
 
 	const persistSession = (
 		nextName: string,
