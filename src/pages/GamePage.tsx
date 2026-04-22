@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { trackEvent } from '../analytics';
 import {
 	MOVE_DEFINITIONS,
 	getMoveDefinition,
@@ -103,6 +104,10 @@ const GamePage = ({
 		}
 
 		setSequence((current) => [...current, move]);
+		void trackEvent('add_move_block', {
+			room_id: selectedRoom.id,
+			move,
+		});
 	};
 
 	const removeMoveAt = (indexToRemove: number) => {
@@ -125,6 +130,9 @@ const GamePage = ({
 		setTrail([selectedRoom.start]);
 		setGameState('ready');
 		setMessage('Послідовність очищено. Збери новий маршрут.');
+		void trackEvent('clear_route_sequence', {
+			room_id: selectedRoom.id,
+		});
 	};
 
 	const retryRoom = () => {
@@ -135,11 +143,17 @@ const GamePage = ({
 		setGameState('ready');
 		setShowGameOverModal(false);
 		setMessage(selectedRoom.hintSummary);
+		void trackEvent('retry_room', {
+			room_id: selectedRoom.id,
+		});
 	};
 
 	const regenerateLevel = () => {
 		setShowGameOverModal(false);
 		onRegenerateRooms();
+		void trackEvent('regenerate_level', {
+			room_id: selectedRoom.id,
+		});
 	};
 
 	const runSequence = async () => {
@@ -153,6 +167,11 @@ const GamePage = ({
 
 		setGameState('running');
 		setMessage('Герой почав рух. Дивись уважно за кожним блоком.');
+		void trackEvent('start_route_run', {
+			room_id: selectedRoom.id,
+			sequence_length: sequence.length,
+			attempts_left: attemptsLeft,
+		});
 
 		let currentPosition = selectedRoom.start;
 		const nextTrail: Point[] = [selectedRoom.start];

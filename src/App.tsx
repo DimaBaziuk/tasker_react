@@ -1,12 +1,18 @@
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { logEvent } from 'firebase/analytics';
 import { createRoom, createRooms, type RoomDefinition } from './game';
 import GamePage from './pages/GamePage';
 import HomePage from './pages/HomePage';
 import RoutineRoomPage from './pages/RoutineRoomPage';
-import { initFirebaseAnalytics } from './firebase';
 import { useLocation } from 'react-router-dom';
+import {
+	getStoredAnalyticsConsent,
+	setAnalyticsConsentChoice,
+	trackEvent,
+	trackPageView,
+	type AnalyticsConsentChoice,
+} from './analytics';
+import { detectVisitorCountryCode, getBlockedCountryCodes } from './geoblock';
 
 const SCORE_BY_ROOM: Record<string, number> = {
 	'bright-start': 50,
@@ -18,6 +24,9 @@ const SCORE_BY_ROOM: Record<string, number> = {
 const STORAGE_KEY = 'tasker-player-session';
 const FULL_COLLECTION_BONUS = 350;
 const ROUTINE_ROOM_ID = 'daily-routines';
+const BLOCKED_COUNTRY_CODES = getBlockedCountryCodes();
+
+type GeoAccessState = 'checking' | 'allowed' | 'blocked';
 
 interface PlayerSession {
 	playerName: string;
@@ -116,20 +125,88 @@ const App = () => {
 	const hasFullLabyrinthCollection =
 		labyrinthCollectionTarget.length > 0 &&
 		collectedLabyrinthCount === labyrinthCollectionTarget.length;
+	const [analyticsConsent, setAnalyticsConsent] =
+		useState<AnalyticsConsentChoice | null>(() =>
+			getStoredAnalyticsConsent(),
+		);
+	const [geoAccessState, setGeoAccessState] =
+		useState<GeoAccessState>('checking');
 
 	useEffect(() => {
-		void initFirebaseAnalytics().then((analytics) => {
-			if (!analytics) {
+		let cancelled = false;
+
+		void detectVisitorCountryCode().then((countryCode) => {
+			if (cancelled) {
 				return;
 			}
 
-			logEvent(analytics, 'page_view', {
-				page_title: document.title,
-				page_location: window.location.href,
-				page_path: `${location.pathname}${location.search}`,
-			});
+			if (countryCode && BLOCKED_COUNTRY_CODES.has(countryCode)) {
+				setGeoAccessState('blocked');
+				void trackEvent('geo_blocked_access', {
+					country_code: countryCode,
+				});
+				return;
+			}
+
+			setGeoAccessState('allowed');
+		});
+
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
+	useEffect(() => {
+		if (!analyticsConsent) {
+			return;
+		}
+
+		void setAnalyticsConsentChoice(analyticsConsent);
+	}, [analyticsConsent]);
+
+	useEffect(() => {
+		void trackPageView({
+			page_title: document.title,
+			page_location: window.location.href,
+			page_path: `${location.pathname}${location.search}`,
 		});
 	}, [location.pathname, location.search]);
+
+	const updateConsent = (consent: AnalyticsConsentChoice) => {
+		setAnalyticsConsent(consent);
+		void setAnalyticsConsentChoice(consent).then(() => {
+			void trackEvent('consent_update', { consent_choice: consent });
+		});
+	};
+
+	if (geoAccessState === 'checking') {
+		return (
+			<main className='geoAccessScreen'>
+				<div className='geoAccessCard'>
+					<p className='modalCard__eyebrow'>Перевірка доступу</p>
+					<h2>Підготовка гри...</h2>
+					<p>
+						Перевіряємо регіон доступу. Це займає декілька секунд.
+					</p>
+				</div>
+			</main>
+		);
+	}
+
+	if (geoAccessState === 'blocked') {
+		return (
+			<main className='geoAccessScreen'>
+				<div className='geoAccessCard'>
+					<p className='modalCard__eyebrow'>Доступ обмежено</p>
+					<h2>Цей застосунок недоступний у вашому регіоні.</h2>
+					<p>
+						Якщо ви вважаєте, що це помилка, зверніться до
+						адміністратора сайту.
+					</p>
+				</div>
+			</main>
+		);
+	}
 
 	const persistSession = (
 		nextName: string,
@@ -156,6 +233,9 @@ const App = () => {
 	const regenerateRooms = () => {
 		setRooms(createRooms());
 		consecutiveWinsRef.current = 0;
+		void trackEvent('regenerate_rooms', {
+			from_path: location.pathname,
+		});
 		if (playerName) {
 			persistSession(
 				playerName,
@@ -188,6 +268,11 @@ const App = () => {
 		scoreOverride?: number,
 	) => {
 		if (outcome === 'failure') {
+			void trackEvent('level_failed', {
+				room_id: roomId,
+				score,
+				player_name_set: Boolean(playerName),
+			});
 			setPendingLevelEmojis([]);
 			consecutiveWinsRef.current = 0;
 			if (playerName) {
@@ -222,6 +307,11 @@ const App = () => {
 				);
 			}
 
+			void trackEvent('routine_room_scored', {
+				routine_score: nextRoutineRoomScore,
+				total_score: nextScore,
+			});
+
 			return;
 		}
 
@@ -251,6 +341,12 @@ const App = () => {
 		setScore(nextScore);
 		setCollectedEmojis(nextCollectedEmojis);
 		setPendingLevelEmojis([]);
+		void trackEvent('level_completed', {
+			room_id: roomId,
+			room_score: roomScore,
+			collection_bonus: collectionBonus,
+			total_score: nextScore,
+		});
 		regenerateRoom(roomId);
 		if (playerName) {
 			persistSession(
@@ -298,6 +394,9 @@ const App = () => {
 
 		setPlayerName(cleanedName);
 		setShowNameModal(false);
+		void trackEvent('player_name_set', {
+			name_length: cleanedName.length,
+		});
 		persistSession(
 			cleanedName,
 			score,
@@ -331,6 +430,9 @@ const App = () => {
 		setPendingLevelEmojis([]);
 		setShowNameModal(true);
 		consecutiveWinsRef.current = 0;
+		void trackEvent('reset_progress', {
+			from_path: location.pathname,
+		});
 
 		if (typeof window !== 'undefined') {
 			window.sessionStorage.removeItem(STORAGE_KEY);
@@ -441,6 +543,36 @@ const App = () => {
 								Почати гру
 							</button>
 						</form>
+					</div>
+				</div>
+			) : null}
+
+			{analyticsConsent === null ? (
+				<div className='consentBanner' role='dialog' aria-live='polite'>
+					<div>
+						<p className='consentBanner__title'>
+							Налаштування аналітики
+						</p>
+						<p className='consentBanner__text'>
+							Дозволиш збирати анонімні події, щоб покращувати
+							гру?
+						</p>
+					</div>
+					<div className='consentBanner__actions'>
+						<button
+							type='button'
+							className='secondaryButton'
+							onClick={() => updateConsent('denied')}
+						>
+							Ні, дякую
+						</button>
+						<button
+							type='button'
+							className='primaryButton'
+							onClick={() => updateConsent('granted')}
+						>
+							Дозволити
+						</button>
 					</div>
 				</div>
 			) : null}

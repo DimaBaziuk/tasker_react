@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { RoomDefinition } from '../game';
+import { trackEvent } from '../analytics';
 
 type GameOverState = {
 	gameOver?: boolean;
@@ -17,6 +18,30 @@ const HomePage = ({ rooms, onRegenerateRooms }: HomePageProps) => {
 	const location = useLocation();
 	const gameOverState =
 		(location.state as GameOverState | null | undefined) ?? null;
+
+	const handleOpenRoutineRoom = () => {
+		void trackEvent('select_room', {
+			room_id: 'daily-routines',
+			room_type: 'routine',
+		});
+		navigate('/routine-room');
+	};
+
+	const handleOpenGameRoom = (roomId: string, difficultyLabel: string) => {
+		void trackEvent('select_room', {
+			room_id: roomId,
+			difficulty: difficultyLabel,
+			room_type: 'algorithm',
+		});
+		navigate(`/game/${roomId}`);
+	};
+
+	const handleRegenerateRooms = () => {
+		void trackEvent('home_new_rooms_click', {
+			rooms_count: rooms.length,
+		});
+		onRegenerateRooms();
+	};
 
 	return (
 		<main className='appShell'>
@@ -44,7 +69,7 @@ const HomePage = ({ rooms, onRegenerateRooms }: HomePageProps) => {
 				<button
 					type='button'
 					className='roomCard roomCard--routine'
-					onClick={() => navigate('/routine-room')}
+					onClick={handleOpenRoutineRoom}
 				>
 					<span className='roomCard__badge'>Нова кімната</span>
 					<span className='roomCard__emoji'>🧠</span>
@@ -70,7 +95,9 @@ const HomePage = ({ rooms, onRegenerateRooms }: HomePageProps) => {
 							background: room.theme.surface,
 							boxShadow: `0 18px 38px ${room.theme.glow}`,
 						}}
-						onClick={() => navigate(`/game/${room.id}`)}
+						onClick={() =>
+							handleOpenGameRoom(room.id, room.difficultyLabel)
+						}
 					>
 						<span className='roomCard__badge'>
 							{room.difficultyLabel}
@@ -96,7 +123,7 @@ const HomePage = ({ rooms, onRegenerateRooms }: HomePageProps) => {
 				<button
 					type='button'
 					className='ghostButton'
-					onClick={onRegenerateRooms}
+					onClick={handleRegenerateRooms}
 				>
 					Нові кімнати
 				</button>

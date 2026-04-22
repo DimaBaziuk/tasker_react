@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { trackEvent } from '../analytics';
 
 interface RoutineRoomPageProps {
 	onRoomOutcome: (
@@ -168,6 +169,7 @@ const RoutineRoomPage = ({ onRoomOutcome }: RoutineRoomPageProps) => {
 		setShowHintModal(false);
 		setHintOpenCount(0);
 		setFeedback('Новий порядок готовий. Відсортуй справи знову.');
+		void trackEvent('routine_reset_round');
 	};
 
 	const openHintModal = () => {
@@ -180,6 +182,9 @@ const RoutineRoomPage = ({ onRoomOutcome }: RoutineRoomPageProps) => {
 
 		setHintOpenCount((current) => current + 1);
 		setShowHintModal(true);
+		void trackEvent('routine_hint_open', {
+			hints_left_after_open: Math.max(0, hintsLeft - 1),
+		});
 	};
 
 	const updateAnswer = (
@@ -286,6 +291,12 @@ const RoutineRoomPage = ({ onRoomOutcome }: RoutineRoomPageProps) => {
 			results.evening.score;
 
 		onRoomOutcome(ROOM_ID, 'success', [], score);
+		void trackEvent('routine_check_answers', {
+			total_score: score,
+			morning_score: results.morning.score,
+			afternoon_score: results.afternoon.score,
+			evening_score: results.evening.score,
+		});
 
 		setTaskStatuses(statuses);
 		setSectionResults(results);
