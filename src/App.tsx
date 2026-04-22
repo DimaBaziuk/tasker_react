@@ -1,11 +1,6 @@
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { useMemo, useRef, useState, type FormEvent } from 'react';
-import {
-	LABYRINTH_COLLECTION_TARGET,
-	createRoom,
-	createRooms,
-	type RoomDefinition,
-} from './game';
+import { createRoom, createRooms, type RoomDefinition } from './game';
 import GamePage from './pages/GamePage';
 import HomePage from './pages/HomePage';
 import RoutineRoomPage from './pages/RoutineRoomPage';
@@ -96,15 +91,27 @@ const App = () => {
 		() => [...new Set([...collectedEmojis, ...pendingLevelEmojis])],
 		[collectedEmojis, pendingLevelEmojis],
 	);
+	const labyrinthCollectionTarget = useMemo(
+		() =>
+			Array.from(
+				new Set(
+					rooms.flatMap((room) =>
+						room.decorations.map((decoration) => decoration.emoji),
+					),
+				),
+			),
+		[rooms],
+	);
 	const collectedLabyrinthCount = useMemo(
 		() =>
-			LABYRINTH_COLLECTION_TARGET.filter((emoji) =>
+			labyrinthCollectionTarget.filter((emoji) =>
 				collectedEmojis.includes(emoji),
 			).length,
-		[collectedEmojis],
+		[collectedEmojis, labyrinthCollectionTarget],
 	);
 	const hasFullLabyrinthCollection =
-		collectedLabyrinthCount === LABYRINTH_COLLECTION_TARGET.length;
+		labyrinthCollectionTarget.length > 0 &&
+		collectedLabyrinthCount === labyrinthCollectionTarget.length;
 
 	const persistSession = (
 		nextName: string,
@@ -210,12 +217,16 @@ const App = () => {
 				...roomEmojis,
 			]),
 		];
-		const hadFullCollection = LABYRINTH_COLLECTION_TARGET.every((emoji) =>
-			collectedEmojis.includes(emoji),
-		);
-		const hasFullCollection = LABYRINTH_COLLECTION_TARGET.every((emoji) =>
-			nextCollectedEmojis.includes(emoji),
-		);
+		const hadFullCollection =
+			labyrinthCollectionTarget.length > 0 &&
+			labyrinthCollectionTarget.every((emoji) =>
+				collectedEmojis.includes(emoji),
+			);
+		const hasFullCollection =
+			labyrinthCollectionTarget.length > 0 &&
+			labyrinthCollectionTarget.every((emoji) =>
+				nextCollectedEmojis.includes(emoji),
+			);
 		const collectionBonus =
 			!hadFullCollection && hasFullCollection ? FULL_COLLECTION_BONUS : 0;
 		const nextScore = score + roomScore + collectionBonus;
@@ -319,7 +330,7 @@ const App = () => {
 					Бонус за всі emoji: {FULL_COLLECTION_BONUS}{' '}
 					{hasFullLabyrinthCollection
 						? '(отримано)'
-						: `(прогрес ${collectedLabyrinthCount}/${LABYRINTH_COLLECTION_TARGET.length})`}
+						: `(прогрес ${collectedLabyrinthCount}/${labyrinthCollectionTarget.length})`}
 				</p>
 				<div className='playerHud__collection'>
 					<p className='playerHud__collectionLabel'>Колекція</p>
