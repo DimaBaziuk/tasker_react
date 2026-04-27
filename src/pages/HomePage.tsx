@@ -27,6 +27,14 @@ const HomePage = ({ rooms, onRegenerateRooms }: HomePageProps) => {
 		navigate('/routine-room');
 	};
 
+	const handleOpenWordRoom = () => {
+		void trackEvent('select_room', {
+			room_id: 'word-builder',
+			room_type: 'words',
+		});
+		navigate('/word-room');
+	};
+
 	const handleOpenGameRoom = (roomId: string, difficultyLabel: string) => {
 		void trackEvent('select_room', {
 			room_id: roomId,
@@ -59,9 +67,9 @@ const HomePage = ({ rooms, onRegenerateRooms }: HomePageProps) => {
 				</div>
 
 				<div className='heroStats'>
-					<span>4 кімнати</span>
+					<span>5 кімнат</span>
 					<span>Підказки рухів</span>
-					<span>Рандомні перешкоди + розпорядок дня</span>
+					<span>Рандомні перешкоди + слова + розпорядок дня</span>
 				</div>
 			</header>
 
@@ -82,6 +90,26 @@ const HomePage = ({ rooms, onRegenerateRooms }: HomePageProps) => {
 						<span>3 частини дня</span>
 						<span>7 кроків у кожній</span>
 						<span>Максимум 120</span>
+					</div>
+					<span className='roomCard__cta'>Відкрити кімнату</span>
+				</button>
+
+				<button
+					type='button'
+					className='roomCard roomCard--words'
+					onClick={handleOpenWordRoom}
+				>
+					<span className='roomCard__badge'>Нова кімната</span>
+					<span className='roomCard__emoji'>🔤</span>
+					<h2>Словотвор</h2>
+					<p>
+						Отримай перемішані літери, складай слова, перевіряй
+						результат і дивись, які варіанти залишилися.
+					</p>
+					<div className='roomCard__facts'>
+						<span>5 балів за слово</span>
+						<span>11 наборів літер</span>
+						<span>Кнопка "Нові слова"</span>
 					</div>
 					<span className='roomCard__cta'>Відкрити кімнату</span>
 				</button>
