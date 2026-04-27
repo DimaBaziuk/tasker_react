@@ -4,6 +4,7 @@ import { createRoom, createRooms, type RoomDefinition } from './game';
 import GamePage from './pages/GamePage';
 import HomePage from './pages/HomePage';
 import RoutineRoomPage from './pages/RoutineRoomPage';
+import WordBuilderRoomPage from './pages/WordBuilderRoomPage';
 import { useLocation } from 'react-router-dom';
 import {
 	getStoredAnalyticsConsent,
@@ -24,6 +25,7 @@ const SCORE_BY_ROOM: Record<string, number> = {
 const STORAGE_KEY = 'tasker-player-session';
 const FULL_COLLECTION_BONUS = 350;
 const ROUTINE_ROOM_ID = 'daily-routines';
+const WORD_ROOM_ID = 'word-builder';
 const BLOCKED_COUNTRY_CODES = getBlockedCountryCodes();
 
 type GeoAccessState = 'checking' | 'allowed' | 'blocked';
@@ -32,6 +34,7 @@ interface PlayerSession {
 	playerName: string;
 	score: number;
 	routineRoomScore: number;
+	wordRoomScore: number;
 	consecutiveWins: number;
 	collectedEmojis: string[];
 }
@@ -71,6 +74,10 @@ const getInitialSession = (): PlayerSession | null => {
 				typeof parsed.routineRoomScore === 'number'
 					? Math.max(0, Math.floor(parsed.routineRoomScore))
 					: 0,
+			wordRoomScore:
+				typeof parsed.wordRoomScore === 'number'
+					? Math.max(0, Math.floor(parsed.wordRoomScore))
+					: 0,
 			consecutiveWins: Math.max(0, Math.floor(parsed.consecutiveWins)),
 			collectedEmojis,
 		};
@@ -90,6 +97,9 @@ const App = () => {
 	const [score, setScore] = useState(initialSession?.score ?? 0);
 	const [routineRoomScore, setRoutineRoomScore] = useState(
 		initialSession?.routineRoomScore ?? 0,
+	);
+	const [wordRoomScore, setWordRoomScore] = useState(
+		initialSession?.wordRoomScore ?? 0,
 	);
 	const [nameInput, setNameInput] = useState(
 		initialSession?.playerName ?? '',
@@ -212,6 +222,7 @@ const App = () => {
 		nextName: string,
 		nextScore: number,
 		nextRoutineRoomScore: number,
+		nextWordRoomScore: number,
 		nextConsecutiveWins: number,
 		nextCollectedEmojis: string[],
 	) => {
@@ -223,6 +234,7 @@ const App = () => {
 			playerName: nextName,
 			score: nextScore,
 			routineRoomScore: nextRoutineRoomScore,
+			wordRoomScore: nextWordRoomScore,
 			consecutiveWins: nextConsecutiveWins,
 			collectedEmojis: nextCollectedEmojis,
 		};
@@ -241,6 +253,7 @@ const App = () => {
 				playerName,
 				score,
 				routineRoomScore,
+				wordRoomScore,
 				0,
 				collectedEmojis,
 			);
@@ -280,6 +293,7 @@ const App = () => {
 					playerName,
 					score,
 					routineRoomScore,
+					wordRoomScore,
 					0,
 					collectedEmojis,
 				);
@@ -302,6 +316,7 @@ const App = () => {
 					playerName,
 					nextScore,
 					nextRoutineRoomScore,
+					wordRoomScore,
 					consecutiveWinsRef.current,
 					collectedEmojis,
 				);
@@ -309,6 +324,35 @@ const App = () => {
 
 			void trackEvent('routine_room_scored', {
 				routine_score: nextRoutineRoomScore,
+				total_score: nextScore,
+			});
+
+			return;
+		}
+
+		if (roomId === WORD_ROOM_ID) {
+			const nextWordRoomScore = Math.max(
+				0,
+				Math.floor(scoreOverride ?? SCORE_BY_ROOM[roomId] ?? 0),
+			);
+			const nextScore = score - wordRoomScore + nextWordRoomScore;
+			setScore(nextScore);
+			setWordRoomScore(nextWordRoomScore);
+			setPendingLevelEmojis([]);
+
+			if (playerName) {
+				persistSession(
+					playerName,
+					nextScore,
+					routineRoomScore,
+					nextWordRoomScore,
+					consecutiveWinsRef.current,
+					collectedEmojis,
+				);
+			}
+
+			void trackEvent('word_room_scored', {
+				word_room_score: nextWordRoomScore,
 				total_score: nextScore,
 			});
 
@@ -353,6 +397,7 @@ const App = () => {
 				playerName,
 				nextScore,
 				routineRoomScore,
+				wordRoomScore,
 				nextWins,
 				nextCollectedEmojis,
 			);
@@ -367,6 +412,7 @@ const App = () => {
 				playerName,
 				nextScore,
 				routineRoomScore,
+				wordRoomScore,
 				0,
 				nextCollectedEmojis,
 			);
@@ -401,6 +447,7 @@ const App = () => {
 			cleanedName,
 			score,
 			routineRoomScore,
+			wordRoomScore,
 			consecutiveWinsRef.current,
 			collectedEmojis,
 		);
@@ -426,6 +473,7 @@ const App = () => {
 		setNameInput('');
 		setScore(0);
 		setRoutineRoomScore(0);
+		setWordRoomScore(0);
 		setCollectedEmojis([]);
 		setPendingLevelEmojis([]);
 		setShowNameModal(true);
@@ -494,6 +542,14 @@ const App = () => {
 					}
 				/>
 				<Route
+					path='/word-room'
+					element={
+						<WordBuilderRoomPage
+							onRoomOutcome={handleRoomOutcome}
+						/>
+					}
+				/>
+				<Route
 					path='/game/:roomId'
 					element={
 						<GamePage
@@ -520,7 +576,8 @@ const App = () => {
 						<p>
 							1 кімната: 50 балів, 2 кімната: 100 балів, 3
 							кімната: 125 балів, кімната "Щоденні справи": до 120
-							балів (по 40 за ранок, обід і вечір).
+							балів (по 40 за ранок, обід і вечір), кімната
+							"Словотвор": 5 балів за кожне правильне слово.
 						</p>
 
 						<form
