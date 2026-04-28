@@ -10,10 +10,10 @@ type GameOverState = {
 
 interface HomePageProps {
 	rooms: RoomDefinition[];
-	onRegenerateRooms: () => void;
+	onRegenerateRooms?: () => void;
 }
 
-const HomePage = ({ rooms, onRegenerateRooms }: HomePageProps) => {
+const HomePage = ({ rooms }: HomePageProps) => {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const gameOverState =
@@ -42,13 +42,6 @@ const HomePage = ({ rooms, onRegenerateRooms }: HomePageProps) => {
 			room_type: 'algorithm',
 		});
 		navigate(`/game/${roomId}`);
-	};
-
-	const handleRegenerateRooms = () => {
-		void trackEvent('home_new_rooms_click', {
-			rooms_count: rooms.length,
-		});
-		onRegenerateRooms();
 	};
 
 	return (
@@ -146,16 +139,6 @@ const HomePage = ({ rooms, onRegenerateRooms }: HomePageProps) => {
 					</button>
 				))}
 			</section>
-
-			<div className='homeActions'>
-				<button
-					type='button'
-					className='ghostButton'
-					onClick={handleRegenerateRooms}
-				>
-					Нові кімнати
-				</button>
-			</div>
 
 			{gameOverState?.gameOver ? (
 				<div className='modalOverlay' role='presentation'>
