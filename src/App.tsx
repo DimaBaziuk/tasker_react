@@ -4,6 +4,7 @@ import { createRoom, createRooms, type RoomDefinition } from './game';
 import GamePage from './pages/GamePage';
 import HomePage from './pages/HomePage';
 import RoutineRoomPage from './pages/RoutineRoomPage';
+import SafetyRoomPage from './pages/SafetyRoomPage';
 import WordBuilderRoomPage from './pages/WordBuilderRoomPage';
 import { useLocation } from 'react-router-dom';
 import {
@@ -20,12 +21,14 @@ const SCORE_BY_ROOM: Record<string, number> = {
 	'mirror-hall': 100,
 	'forest-labyrinth': 125,
 	'daily-routines': 0,
+	'safety-lab': 0,
 };
 
 const STORAGE_KEY = 'tasker-player-session';
 const FULL_COLLECTION_BONUS = 350;
 const ROUTINE_ROOM_ID = 'daily-routines';
 const WORD_ROOM_ID = 'word-builder';
+const SAFETY_ROOM_ID = 'safety-lab';
 const BLOCKED_COUNTRY_CODES = getBlockedCountryCodes();
 
 type GeoAccessState = 'checking' | 'allowed' | 'blocked';
@@ -35,6 +38,7 @@ interface PlayerSession {
 	score: number;
 	routineRoomScore: number;
 	wordRoomScore: number;
+	safetyRoomScore: number;
 	consecutiveWins: number;
 	collectedEmojis: string[];
 }
@@ -78,6 +82,10 @@ const getInitialSession = (): PlayerSession | null => {
 				typeof parsed.wordRoomScore === 'number'
 					? Math.max(0, Math.floor(parsed.wordRoomScore))
 					: 0,
+			safetyRoomScore:
+				typeof parsed.safetyRoomScore === 'number'
+					? Math.max(0, Math.floor(parsed.safetyRoomScore))
+					: 0,
 			consecutiveWins: Math.max(0, Math.floor(parsed.consecutiveWins)),
 			collectedEmojis,
 		};
@@ -100,6 +108,9 @@ const App = () => {
 	);
 	const [wordRoomScore, setWordRoomScore] = useState(
 		initialSession?.wordRoomScore ?? 0,
+	);
+	const [safetyRoomScore, setSafetyRoomScore] = useState(
+		initialSession?.safetyRoomScore ?? 0,
 	);
 	const [nameInput, setNameInput] = useState(
 		initialSession?.playerName ?? '',
@@ -223,6 +234,7 @@ const App = () => {
 		nextScore: number,
 		nextRoutineRoomScore: number,
 		nextWordRoomScore: number,
+		nextSafetyRoomScore: number,
 		nextConsecutiveWins: number,
 		nextCollectedEmojis: string[],
 	) => {
@@ -235,6 +247,7 @@ const App = () => {
 			score: nextScore,
 			routineRoomScore: nextRoutineRoomScore,
 			wordRoomScore: nextWordRoomScore,
+			safetyRoomScore: nextSafetyRoomScore,
 			consecutiveWins: nextConsecutiveWins,
 			collectedEmojis: nextCollectedEmojis,
 		};
@@ -254,6 +267,7 @@ const App = () => {
 				score,
 				routineRoomScore,
 				wordRoomScore,
+				safetyRoomScore,
 				0,
 				collectedEmojis,
 			);
@@ -294,6 +308,7 @@ const App = () => {
 					score,
 					routineRoomScore,
 					wordRoomScore,
+					safetyRoomScore,
 					0,
 					collectedEmojis,
 				);
@@ -317,6 +332,7 @@ const App = () => {
 					nextScore,
 					nextRoutineRoomScore,
 					wordRoomScore,
+					safetyRoomScore,
 					consecutiveWinsRef.current,
 					collectedEmojis,
 				);
@@ -346,6 +362,7 @@ const App = () => {
 					nextScore,
 					routineRoomScore,
 					nextWordRoomScore,
+					safetyRoomScore,
 					consecutiveWinsRef.current,
 					collectedEmojis,
 				);
@@ -353,6 +370,36 @@ const App = () => {
 
 			void trackEvent('word_room_scored', {
 				word_room_score: nextWordRoomScore,
+				total_score: nextScore,
+			});
+
+			return;
+		}
+
+		if (roomId === SAFETY_ROOM_ID) {
+			const nextSafetyRoomScore = Math.max(
+				0,
+				Math.floor(scoreOverride ?? SCORE_BY_ROOM[roomId] ?? 0),
+			);
+			const nextScore = score - safetyRoomScore + nextSafetyRoomScore;
+			setScore(nextScore);
+			setSafetyRoomScore(nextSafetyRoomScore);
+			setPendingLevelEmojis([]);
+
+			if (playerName) {
+				persistSession(
+					playerName,
+					nextScore,
+					routineRoomScore,
+					wordRoomScore,
+					nextSafetyRoomScore,
+					consecutiveWinsRef.current,
+					collectedEmojis,
+				);
+			}
+
+			void trackEvent('safety_room_scored', {
+				safety_room_score: nextSafetyRoomScore,
 				total_score: nextScore,
 			});
 
@@ -398,6 +445,7 @@ const App = () => {
 				nextScore,
 				routineRoomScore,
 				wordRoomScore,
+				safetyRoomScore,
 				nextWins,
 				nextCollectedEmojis,
 			);
@@ -413,6 +461,7 @@ const App = () => {
 				nextScore,
 				routineRoomScore,
 				wordRoomScore,
+				safetyRoomScore,
 				0,
 				nextCollectedEmojis,
 			);
@@ -448,6 +497,7 @@ const App = () => {
 			score,
 			routineRoomScore,
 			wordRoomScore,
+			safetyRoomScore,
 			consecutiveWinsRef.current,
 			collectedEmojis,
 		);
@@ -474,6 +524,7 @@ const App = () => {
 		setScore(0);
 		setRoutineRoomScore(0);
 		setWordRoomScore(0);
+		setSafetyRoomScore(0);
 		setCollectedEmojis([]);
 		setPendingLevelEmojis([]);
 		setShowNameModal(true);
@@ -550,6 +601,12 @@ const App = () => {
 					}
 				/>
 				<Route
+					path='/safety-room'
+					element={
+						<SafetyRoomPage onRoomOutcome={handleRoomOutcome} />
+					}
+				/>
+				<Route
 					path='/game/:roomId'
 					element={
 						<GamePage
@@ -577,7 +634,8 @@ const App = () => {
 							1 кімната: 50 балів, 2 кімната: 100 балів, 3
 							кімната: 125 балів, кімната "Щоденні справи": до 120
 							балів (по 40 за ранок, обід і вечір), кімната
-							"Словотвор": 5 балів за кожне правильне слово.
+							"Словотвор": 5 балів за кожне правильне слово,
+							кімната "Безпека вдома": до 200 балів.
 						</p>
 
 						<form

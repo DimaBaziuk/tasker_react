@@ -35,6 +35,14 @@ const HomePage = ({ rooms }: HomePageProps) => {
 		navigate('/word-room');
 	};
 
+	const handleOpenSafetyRoom = () => {
+		void trackEvent('select_room', {
+			room_id: 'safety-lab',
+			room_type: 'safety',
+		});
+		navigate('/safety-room');
+	};
+
 	const handleOpenGameRoom = (roomId: string, difficultyLabel: string) => {
 		void trackEvent('select_room', {
 			room_id: roomId,
@@ -60,9 +68,11 @@ const HomePage = ({ rooms }: HomePageProps) => {
 				</div>
 
 				<div className='heroStats'>
-					<span>5 кімнат</span>
+					<span>6 кімнат</span>
 					<span>Підказки рухів</span>
-					<span>Рандомні перешкоди + слова + розпорядок дня</span>
+					<span>
+						Рандомні перешкоди + слова + розпорядок дня + безпека
+					</span>
 				</div>
 			</header>
 
@@ -83,6 +93,27 @@ const HomePage = ({ rooms }: HomePageProps) => {
 						<span>3 частини дня</span>
 						<span>7 кроків у кожній</span>
 						<span>Максимум 120</span>
+					</div>
+					<span className='roomCard__cta'>Відкрити кімнату</span>
+				</button>
+
+				<button
+					type='button'
+					className='roomCard roomCard--safety'
+					onClick={handleOpenSafetyRoom}
+				>
+					<span className='roomCard__badge'>Нова кімната</span>
+					<span className='roomCard__emoji'>🚒</span>
+					<h2>Безпека вдома</h2>
+					<p>
+						Дві секції в одному раунді: пожежна безпека та
+						електроприлади. Прибери небезпечні картки
+						перетягуванням.
+					</p>
+					<div className='roomCard__facts'>
+						<span>2 секції</span>
+						<span>10 карток на секцію</span>
+						<span>До 200 балів</span>
 					</div>
 					<span className='roomCard__cta'>Відкрити кімнату</span>
 				</button>
