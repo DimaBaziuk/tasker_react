@@ -1,4 +1,4 @@
-export type SafetySectionKey = 'fire' | 'electric';
+export type SafetySectionKey = 'fire' | 'electric' | 'water';
 
 export interface SafetyCard {
 	id: string;

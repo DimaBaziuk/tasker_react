@@ -72,13 +72,23 @@ export const evaluateSafetyRound = (
 				score: 0,
 				remainingDangerCount: 0,
 			},
+			water: {
+				correctCount: 0,
+				totalCards: 0,
+				score: 0,
+				remainingDangerCount: 0,
+			},
 		},
 	);
 
-	const totalScore = bySection.fire.score + bySection.electric.score;
-	const maxScore =
-		(bySection.fire.totalCards + bySection.electric.totalCards) *
-		SAFETY_POINTS_PER_CORRECT;
+	const totalScore = Object.values(bySection).reduce(
+		(sum, section) => sum + section.score,
+		0,
+	);
+	const maxScore = Object.values(bySection).reduce(
+		(sum, section) => sum + section.totalCards,
+		0,
+	) * SAFETY_POINTS_PER_CORRECT;
 
 	return {
 		totalScore,
