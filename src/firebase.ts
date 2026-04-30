@@ -4,6 +4,7 @@ import {
 	isSupported,
 	type Analytics,
 } from 'firebase/analytics';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
 	apiKey:
@@ -35,6 +36,10 @@ export const firebaseApp: FirebaseApp | null = hasRequiredFirebaseConfig
 	? getApps().length
 		? getApp()
 		: initializeApp(firebaseConfig)
+	: null;
+
+export const firestoreDb: Firestore | null = firebaseApp
+	? getFirestore(firebaseApp)
 	: null;
 
 let analyticsInstance: Analytics | null = null;
