@@ -47,7 +47,11 @@ interface SafetySectionColumnProps {
 }
 
 const getSectionModifierClass = (key: SafetySectionKey) =>
-	key === 'fire' ? 'safetySection--fire' : 'safetySection--electric';
+	key === 'fire'
+		? 'safetySection--fire'
+		: key === 'electric'
+			? 'safetySection--electric'
+			: 'safetySection--water';
 
 const SafetyCardItem = ({
 	card,
@@ -260,7 +264,7 @@ const SafetyRoomPage = ({ onRoomOutcome }: SafetyRoomPageProps) => {
 		onRoomOutcome(SAFETY_ROOM_ID, 'success', [], score.totalScore);
 		setFeedback(
 			score.totalScore === score.maxScore
-				? 'Чудово! Усі відповіді правильні в обох секціях.'
+				? 'Чудово! Усі відповіді правильні в усіх трьох секціях.'
 				: `Перевірено: ${score.totalScore} із ${score.maxScore} балів. Тепер видно, скільки небезпечних залишилось саме на момент перевірки.`,
 		);
 		void trackEvent('safety_room_check_answers', {
@@ -268,6 +272,7 @@ const SafetyRoomPage = ({ onRoomOutcome }: SafetyRoomPageProps) => {
 			max_score: score.maxScore,
 			fire_score: score.bySection.fire.score,
 			electric_score: score.bySection.electric.score,
+			water_score: score.bySection.water.score,
 			removed_danger_cards: removedDangerCards,
 		});
 	};
@@ -285,7 +290,7 @@ const SafetyRoomPage = ({ onRoomOutcome }: SafetyRoomPageProps) => {
 			<header className='heroHeader'>
 				<div>
 					<p className='eyebrow'>Нова кімната: Безпека вдома</p>
-					<h1>Відсортуй безпечні дії: вогонь та електрика</h1>
+					<h1>Відсортуй безпечні дії: вогонь, електрика та вода</h1>
 					<p className='heroLead'>
 						Кожна правильна відповідь приносить{' '}
 						{SAFETY_POINTS_PER_CORRECT} балів. У кожній секції по 10
@@ -294,9 +299,9 @@ const SafetyRoomPage = ({ onRoomOutcome }: SafetyRoomPageProps) => {
 				</div>
 
 				<div className='heroStats heroStats--safetyRoom'>
-					<span>2 секції в одному раунді</span>
+					<span>3 секції в одному раунді</span>
 					<span>10 карток на секцію</span>
-					<span>Максимум 200 балів</span>
+					<span>Максимум 300 балів</span>
 					<button
 						type='button'
 						className='ghostButton'
@@ -343,6 +348,12 @@ const SafetyRoomPage = ({ onRoomOutcome }: SafetyRoomPageProps) => {
 								Електробезпека:{' '}
 								{roundScore.bySection.electric.score} /{' '}
 								{roundScore.bySection.electric.totalCards *
+									SAFETY_POINTS_PER_CORRECT}
+							</span>
+							<span>
+								Безпека на воді:{' '}
+								{roundScore.bySection.water.score} /{' '}
+								{roundScore.bySection.water.totalCards *
 									SAFETY_POINTS_PER_CORRECT}
 							</span>
 							<span>
