@@ -94,6 +94,82 @@ button:disabled {
 	min-width: 160px;
 }
 
+.playerHud__authState {
+	margin: 0;
+	font-size: 0.7rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--muted);
+}
+
+.playerHud__account {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 2px 0;
+}
+
+.playerHud__avatar {
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 1px solid rgba(23, 49, 61, 0.16);
+}
+
+.playerHud__accountName {
+	margin: 0;
+	font-size: 0.8rem;
+	font-weight: 700;
+	color: #245160;
+	line-height: 1.2;
+	max-width: 190px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.playerHud__authButton {
+	padding: 7px 10px;
+	border: none;
+	border-radius: 10px;
+	font-size: 0.78rem;
+	font-weight: 800;
+	background: rgba(44, 159, 147, 0.16);
+	color: #155a54;
+	transition:
+		transform 140ms ease,
+		background 140ms ease;
+}
+
+.playerHud__authButton:hover,
+.playerHud__authButton:focus-visible {
+	transform: translateY(-1px);
+	background: rgba(44, 159, 147, 0.26);
+}
+
+.playerHud__authButton:disabled {
+	opacity: 0.6;
+	transform: none;
+}
+
+.playerHud__googleButton {
+	width: 100% !important;
+	height: 36px !important;
+	border-radius: 10px !important;
+	box-shadow: none !important;
+	font-size: 0.8rem !important;
+}
+
+.playerHud__authError {
+	margin: 0;
+	font-size: 0.72rem;
+	line-height: 1.25;
+	font-weight: 700;
+	color: #8d2830;
+}
+
 .playerHud__name,
 .playerHud__score {
 	margin: 0;
@@ -1418,6 +1494,14 @@ button:disabled {
 	display: grid;
 	gap: 10px;
 	margin-top: 18px;
+}
+
+.playerForm__note {
+	margin: 8px 0 0;
+	font-size: 0.84rem;
+	font-weight: 700;
+	color: #245160;
+	line-height: 1.35;
 }
 
 .playerForm label {

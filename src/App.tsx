@@ -15,6 +15,21 @@ import {
 	type AnalyticsConsentChoice,
 } from './analytics';
 import { detectVisitorCountryCode, getBlockedCountryCodes } from './geoblock';
+import {
+	signInWithGooglePopup,
+	signOutCurrentUser,
+	subscribeToAuthChanges,
+} from './auth';
+import type { User } from 'firebase/auth';
+import {
+	deleteFirestorePlayerProgress,
+	isFirestoreMissingDatabaseError,
+	isFirestorePermissionDeniedError,
+	isFirestoreSyncEnabled,
+	loadFirestorePlayerProgress,
+	saveFirestorePlayerProgress,
+} from './firestoreProgress';
+import GoogleButton from 'react-google-button';
 
 const SCORE_BY_ROOM: Record<string, number> = {
 	'bright-start': 50,
@@ -32,9 +47,11 @@ const SAFETY_ROOM_ID = 'safety-lab';
 const BLOCKED_COUNTRY_CODES = getBlockedCountryCodes();
 
 type GeoAccessState = 'checking' | 'allowed' | 'blocked';
+type AuthMode = 'guest' | 'google';
 
 interface PlayerSession {
 	playerName: string;
+	authMode: AuthMode;
 	score: number;
 	routineRoomScore: number;
 	wordRoomScore: number;
@@ -71,8 +88,12 @@ const getInitialSession = (): PlayerSession | null => {
 			return null;
 		}
 
+		const authMode: AuthMode =
+			parsed.authMode === 'guest' ? 'guest' : 'google';
+
 		return {
 			playerName: parsed.playerName.trim(),
+			authMode,
 			score: Math.max(0, Math.floor(parsed.score)),
 			routineRoomScore:
 				typeof parsed.routineRoomScore === 'number'
@@ -120,6 +141,9 @@ const App = () => {
 	);
 	const [pendingLevelEmojis, setPendingLevelEmojis] = useState<string[]>([]);
 	const [showNameModal, setShowNameModal] = useState(!initialSession);
+	const [authMode, setAuthMode] = useState<AuthMode>(
+		initialSession?.authMode ?? 'guest',
+	);
 	const consecutiveWinsRef = useRef(initialSession?.consecutiveWins ?? 0);
 	const visibleEmojis = useMemo(
 		() => [...new Set([...collectedEmojis, ...pendingLevelEmojis])],
@@ -152,6 +176,108 @@ const App = () => {
 		);
 	const [geoAccessState, setGeoAccessState] =
 		useState<GeoAccessState>('checking');
+	const [authUser, setAuthUser] = useState<User | null>(null);
+	const [authReady, setAuthReady] = useState(false);
+	const [authError, setAuthError] = useState<string | null>(null);
+	const [isHydratingFromCloud, setIsHydratingFromCloud] = useState(false);
+	const [isCloudSyncEnabled, setIsCloudSyncEnabled] = useState<boolean>(() =>
+		isFirestoreSyncEnabled(),
+	);
+	const authDisplayName = useMemo(() => {
+		if (!authUser) {
+			return '';
+		}
+
+		const trimmedName = authUser.displayName?.trim();
+
+		if (trimmedName) {
+			return trimmedName;
+		}
+
+		const emailPrefix = authUser.email?.split('@')[0]?.trim();
+		return emailPrefix ?? '';
+	}, [authUser]);
+
+	useEffect(() => {
+		const unsubscribe = subscribeToAuthChanges((nextUser) => {
+			setAuthUser(nextUser);
+			if (nextUser) {
+				setAuthMode('google');
+			}
+			setAuthReady(true);
+		});
+
+		return unsubscribe;
+	}, []);
+
+	useEffect(() => {
+		if (!authDisplayName) {
+			return;
+		}
+
+		setAuthMode('google');
+		setPlayerName(authDisplayName);
+		setNameInput(authDisplayName);
+		setShowNameModal(false);
+	}, [authDisplayName]);
+
+	useEffect(() => {
+		if (!authUser || !isCloudSyncEnabled) {
+			return;
+		}
+
+		let cancelled = false;
+		setIsHydratingFromCloud(true);
+
+		void loadFirestorePlayerProgress(authUser.uid)
+			.then((savedProgress) => {
+				if (cancelled || !savedProgress) {
+					return;
+				}
+
+				setPlayerName(savedProgress.playerName);
+				setNameInput(savedProgress.playerName);
+				setScore(savedProgress.score);
+				setRoutineRoomScore(savedProgress.routineRoomScore);
+				setWordRoomScore(savedProgress.wordRoomScore);
+				setSafetyRoomScore(savedProgress.safetyRoomScore);
+				setCollectedEmojis(savedProgress.collectedEmojis);
+				setPendingLevelEmojis([]);
+				consecutiveWinsRef.current = savedProgress.consecutiveWins;
+				setShowNameModal(false);
+			})
+			.catch((error: unknown) => {
+				if (isFirestoreMissingDatabaseError(error)) {
+					setIsCloudSyncEnabled(false);
+					setAuthError(
+						'Firestore ще не створено в Firebase проєкті. Хмарне збереження вимкнено.',
+					);
+					return;
+				}
+
+				if (isFirestorePermissionDeniedError(error)) {
+					setAuthError(
+						'Немає доступу до Firestore (permission-denied). Оновіть Firestore Rules та увійдіть через Google.',
+					);
+					return;
+				}
+
+				setAuthError(
+					'Не вдалося завантажити прогрес із Firebase. Працюємо локально.',
+				);
+			})
+			.finally(() => {
+				if (cancelled) {
+					return;
+				}
+
+				setIsHydratingFromCloud(false);
+			});
+
+		return () => {
+			cancelled = true;
+		};
+	}, [authUser, isCloudSyncEnabled]);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -200,6 +326,58 @@ const App = () => {
 		});
 	};
 
+	const handleGoogleSignIn = async () => {
+		setAuthError(null);
+
+		try {
+			await signInWithGooglePopup();
+			void trackEvent('auth_sign_in_success', {
+				provider: 'google',
+			});
+		} catch (error) {
+			setAuthError('Не вдалося увійти через Google. Спробуйте ще раз.');
+			void trackEvent('auth_sign_in_error', {
+				provider: 'google',
+				error:
+					error instanceof Error
+						? error.message.slice(0, 120)
+						: 'unknown',
+			});
+		}
+	};
+
+	const handleGoogleSignOut = async () => {
+		setAuthError(null);
+
+		try {
+			await signOutCurrentUser();
+			setRooms(createRooms());
+			setPlayerName('');
+			setNameInput('');
+			setScore(0);
+			setRoutineRoomScore(0);
+			setWordRoomScore(0);
+			setSafetyRoomScore(0);
+			setCollectedEmojis([]);
+			setPendingLevelEmojis([]);
+			setAuthMode('guest');
+			setShowNameModal(true);
+			consecutiveWinsRef.current = 0;
+
+			if (typeof window !== 'undefined') {
+				window.sessionStorage.removeItem(STORAGE_KEY);
+			}
+
+			navigate('/', { replace: true });
+
+			void trackEvent('auth_sign_out', {
+				provider: 'google',
+			});
+		} catch {
+			setAuthError('Не вдалося вийти з акаунту. Спробуйте ще раз.');
+		}
+	};
+
 	if (geoAccessState === 'checking') {
 		return (
 			<main className='geoAccessScreen'>
@@ -238,12 +416,18 @@ const App = () => {
 		nextConsecutiveWins: number,
 		nextCollectedEmojis: string[],
 	) => {
-		if (typeof window === 'undefined') {
+		if (
+			typeof window === 'undefined' ||
+			authMode !== 'google' ||
+			isHydratingFromCloud ||
+			!isCloudSyncEnabled
+		) {
 			return;
 		}
 
 		const payload: PlayerSession = {
 			playerName: nextName,
+			authMode: 'google',
 			score: nextScore,
 			routineRoomScore: nextRoutineRoomScore,
 			wordRoomScore: nextWordRoomScore,
@@ -253,6 +437,37 @@ const App = () => {
 		};
 
 		window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+
+		if (authUser?.uid) {
+			void saveFirestorePlayerProgress(authUser.uid, {
+				playerName: nextName,
+				score: nextScore,
+				routineRoomScore: nextRoutineRoomScore,
+				wordRoomScore: nextWordRoomScore,
+				safetyRoomScore: nextSafetyRoomScore,
+				consecutiveWins: nextConsecutiveWins,
+				collectedEmojis: nextCollectedEmojis,
+			}).catch((error: unknown) => {
+				if (isFirestoreMissingDatabaseError(error)) {
+					setIsCloudSyncEnabled(false);
+					setAuthError(
+						'Firestore ще не створено в Firebase проєкті. Хмарне збереження вимкнено.',
+					);
+					return;
+				}
+
+				if (isFirestorePermissionDeniedError(error)) {
+					setAuthError(
+						'Немає доступу до Firestore (permission-denied). Оновіть Firestore Rules та увійдіть через Google.',
+					);
+					return;
+				}
+
+				setAuthError(
+					'Не вдалося зберегти прогрес у Firebase. Спробуйте пізніше.',
+				);
+			});
+		}
 	};
 
 	const regenerateRooms = () => {
@@ -488,19 +703,16 @@ const App = () => {
 		}
 
 		setPlayerName(cleanedName);
+		setAuthMode('guest');
 		setShowNameModal(false);
 		void trackEvent('player_name_set', {
 			name_length: cleanedName.length,
+			auth_mode: 'guest',
 		});
-		persistSession(
-			cleanedName,
-			score,
-			routineRoomScore,
-			wordRoomScore,
-			safetyRoomScore,
-			consecutiveWinsRef.current,
-			collectedEmojis,
-		);
+
+		if (typeof window !== 'undefined') {
+			window.sessionStorage.removeItem(STORAGE_KEY);
+		}
 	};
 
 	const handleCollectEmoji = (emoji: string) => {
@@ -518,23 +730,56 @@ const App = () => {
 	};
 
 	const resetProgress = () => {
+		const isGoogleUser = Boolean(authUser);
+		const nextPlayerName = isGoogleUser
+			? authDisplayName || playerName || 'Користувач'
+			: '';
+
 		setRooms(createRooms());
-		setPlayerName('');
-		setNameInput('');
+		setPlayerName(nextPlayerName);
+		setNameInput(nextPlayerName);
 		setScore(0);
 		setRoutineRoomScore(0);
 		setWordRoomScore(0);
 		setSafetyRoomScore(0);
 		setCollectedEmojis([]);
 		setPendingLevelEmojis([]);
-		setShowNameModal(true);
+		setAuthMode(isGoogleUser ? 'google' : 'guest');
+		setShowNameModal(!isGoogleUser);
+		setAuthError(null);
 		consecutiveWinsRef.current = 0;
 		void trackEvent('reset_progress', {
 			from_path: location.pathname,
+			auth_mode: isGoogleUser ? 'google' : 'guest',
 		});
 
 		if (typeof window !== 'undefined') {
 			window.sessionStorage.removeItem(STORAGE_KEY);
+		}
+
+		if (authUser?.uid && isCloudSyncEnabled) {
+			void deleteFirestorePlayerProgress(authUser.uid).catch(
+				(error: unknown) => {
+					if (isFirestoreMissingDatabaseError(error)) {
+						setIsCloudSyncEnabled(false);
+						setAuthError(
+							'Firestore ще не створено в Firebase проєкті. Хмарне збереження вимкнено.',
+						);
+						return;
+					}
+
+					if (isFirestorePermissionDeniedError(error)) {
+						setAuthError(
+							'Немає доступу до Firestore (permission-denied). Оновіть Firestore Rules та увійдіть через Google.',
+						);
+						return;
+					}
+
+					setAuthError(
+						'Не вдалося видалити прогрес у Firebase. Спробуйте пізніше.',
+					);
+				},
+			);
 		}
 
 		navigate('/', { replace: true });
@@ -543,6 +788,48 @@ const App = () => {
 	return (
 		<>
 			<div className='playerHud' aria-live='polite'>
+				<p className='playerHud__authState'>
+					{authUser
+						? isCloudSyncEnabled
+							? 'Google: підключено'
+							: 'Google: підключено (хмара вимкнена)'
+						: 'Режим: гість (без збереження)'}
+				</p>
+				{authUser ? (
+					<div className='playerHud__account'>
+						{authUser.photoURL ? (
+							<img
+								src={authUser.photoURL}
+								alt='Аватар профілю Google'
+								className='playerHud__avatar'
+								referrerPolicy='no-referrer'
+							/>
+						) : null}
+						<p className='playerHud__accountName'>
+							{authDisplayName || 'Користувач'}
+						</p>
+					</div>
+				) : null}
+				{authUser ? (
+					<button
+						type='button'
+						className='playerHud__authButton'
+						onClick={handleGoogleSignOut}
+						disabled={!authReady}
+					>
+						Вийти з Google
+					</button>
+				) : (
+					<GoogleButton
+						onClick={handleGoogleSignIn}
+						label='Увійти через Google'
+						disabled={!authReady}
+						className='playerHud__googleButton'
+					/>
+				)}
+				{authError ? (
+					<p className='playerHud__authError'>{authError}</p>
+				) : null}
 				<p className='playerHud__name'>{playerName || 'Гість'}</p>
 				<p className='playerHud__score'>Бали: {score}</p>
 				<p className='playerHud__bonus'>
@@ -629,7 +916,7 @@ const App = () => {
 						aria-labelledby='welcome-title'
 					>
 						<p className='modalCard__eyebrow'>Початок гри</p>
-						<h3 id='welcome-title'>Введи ім'я гравця</h3>
+						<h3 id='welcome-title'>Увійди або продовж як гість</h3>
 						<p>
 							1 кімната: 50 балів, 2 кімната: 100 балів, 3
 							кімната: 125 балів, кімната "Щоденні справи": до 120
@@ -637,6 +924,13 @@ const App = () => {
 							"Словотвор": 5 балів за кожне правильне слово,
 							кімната "Безпека вдома": до 300 балів.
 						</p>
+						{authUser ? null : (
+							<p className='playerForm__note'>
+								Якщо просто введеш ім'я, це буде гостьовий
+								режим: прогрес не зберігається після закриття
+								вкладки.
+							</p>
+						)}
 
 						<form
 							className='playerForm'
