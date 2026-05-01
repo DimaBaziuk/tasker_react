@@ -889,12 +889,22 @@ button:disabled {
 	border-radius: 14px;
 	border: 1px solid rgba(23, 49, 61, 0.1);
 	background: rgba(255, 255, 255, 0.92);
+	cursor: grab;
 	box-shadow: 0 8px 16px rgba(23, 49, 61, 0.08);
 	transition:
-		transform 140ms ease,
-		box-shadow 140ms ease,
+		transform 180ms ease,
+		box-shadow 180ms ease,
 		border-color 140ms ease,
 		opacity 140ms ease;
+}
+
+.safetyCard:active {
+	cursor: grabbing;
+}
+
+.safetyCard:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 12px 22px rgba(23, 49, 61, 0.14);
 }
 
 .safetyCard p {
@@ -925,6 +935,7 @@ button:disabled {
 
 .safetyCard--dragging {
 	opacity: 0.55;
+	cursor: grabbing;
 	transform: scale(0.98);
 	box-shadow: none;
 }
