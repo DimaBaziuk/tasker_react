@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && node scripts/make-single-file.mjs",
+    "build": "tsc -b && vite build",
+    "build:single-file": "tsc -b && vite build && node scripts/make-single-file.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },
