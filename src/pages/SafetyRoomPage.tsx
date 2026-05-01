@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Stack } from '@mui/material';
 import {
 	DragDropProvider,
 	useDraggable,
@@ -18,6 +19,7 @@ import type {
 	SafetySectionKey,
 	SafetySectionState,
 } from '../safety_room/types';
+import { AppButton, AppCard } from '../ui/primitives';
 
 interface SafetyRoomPageProps {
 	onRoomOutcome: (
@@ -74,7 +76,8 @@ const SafetyCardItem = ({
 		: '';
 
 	return (
-		<article
+		<AppCard
+			component='article'
 			ref={ref}
 			className={`safetyCard ${isDragging ? 'safetyCard--dragging' : ''} ${evaluationClassName}`.trim()}
 		>
@@ -95,7 +98,7 @@ const SafetyCardItem = ({
 					Перетягни за межі секції, якщо небезпечно
 				</span>
 			)}
-		</article>
+		</AppCard>
 	);
 };
 
@@ -120,25 +123,26 @@ const SafetySectionColumn = ({
 	});
 
 	return (
-		<article
+		<AppCard
+			component='article'
 			className={`safetySection ${getSectionModifierClass(section.key)} ${isCardsDropTarget ? 'safetySection--activeDrop' : ''}`.trim()}
 		>
 			<header className='safetySection__header'>
-				<div>
+				<Stack>
 					<h3>{section.title}</h3>
 					<p>{section.description}</p>
-				</div>
-				<div className='safetySection__stats'>
+				</Stack>
+				<Stack className='safetySection__stats'>
 					<span>Карток: {section.cards.length}</span>
 					<span>
 						{showEvaluation
 							? `Небезпечних на момент перевірки: ${remainingDangerCount ?? 0}`
 							: 'Небезпечні рахуються після "Перевірити"'}
 					</span>
-				</div>
+				</Stack>
 			</header>
 
-			<div ref={cardsRef} className='safetySection__cards'>
+			<Stack ref={cardsRef} className='safetySection__cards'>
 				{section.cards.length === 0 ? (
 					<p className='emptyState'>
 						Усі картки прибрані. Перевір відповідь або почни новий
@@ -154,9 +158,9 @@ const SafetySectionColumn = ({
 						/>
 					))
 				)}
-			</div>
+			</Stack>
 
-			<div
+			<Stack
 				ref={trashRef}
 				className={`safetyTrashZone ${isTrashDropTarget ? 'safetyTrashZone--active' : ''}`.trim()}
 			>
@@ -164,8 +168,8 @@ const SafetySectionColumn = ({
 					🗑️
 				</span>
 				<p>Перетягни сюди картку, щоб викинути її</p>
-			</div>
-		</article>
+			</Stack>
+		</AppCard>
 	);
 };
 
@@ -288,7 +292,7 @@ const SafetyRoomPage = ({ onRoomOutcome }: SafetyRoomPageProps) => {
 	return (
 		<main className='appShell'>
 			<header className='heroHeader'>
-				<div>
+				<Stack>
 					<p className='eyebrow'>Нова кімната: Безпека вдома</p>
 					<h1>Відсортуй безпечні дії: вогонь, електрика та вода</h1>
 					<p className='heroLead'>
@@ -296,20 +300,24 @@ const SafetyRoomPage = ({ onRoomOutcome }: SafetyRoomPageProps) => {
 						{SAFETY_POINTS_PER_CORRECT} балів. У кожній секції по 10
 						карток: частина безпечні, частина небезпечні.
 					</p>
-				</div>
+				</Stack>
 
-				<div className='heroStats heroStats--safetyRoom'>
+				<Stack
+					className='heroStats heroStats--safetyRoom'
+					direction='row'
+				>
 					<span>3 секції в одному раунді</span>
 					<span>10 карток на секцію</span>
 					<span>Максимум 300 балів</span>
-					<button
+					<AppButton
 						type='button'
+						tone='ghost'
 						className='ghostButton'
 						onClick={() => navigate('/')}
 					>
 						До кімнат
-					</button>
-				</div>
+					</AppButton>
+				</Stack>
 			</header>
 
 			<DragDropProvider onDragEnd={handleDragEnd}>
@@ -332,7 +340,7 @@ const SafetyRoomPage = ({ onRoomOutcome }: SafetyRoomPageProps) => {
 
 			<section className='safetySummary'>
 				<p className='wordRoomFeedback'>{feedback}</p>
-				<div className='safetySummary__stats'>
+				<Stack className='safetySummary__stats' direction='row'>
 					<span>
 						Викинуто небезпечних карток: {removedDangerCards}
 					</span>
@@ -366,23 +374,25 @@ const SafetyRoomPage = ({ onRoomOutcome }: SafetyRoomPageProps) => {
 							Натисни "Перевірити", щоб побачити результат.
 						</span>
 					)}
-				</div>
-				<div className='actionRow'>
-					<button
+				</Stack>
+				<Stack className='actionRow' direction='row'>
+					<AppButton
 						type='button'
+						tone='primary'
 						className='primaryButton'
 						onClick={checkAnswers}
 					>
 						Перевірити
-					</button>
-					<button
+					</AppButton>
+					<AppButton
 						type='button'
+						tone='secondary'
 						className='secondaryButton'
 						onClick={startNewRound}
 					>
 						Новий раунд
-					</button>
-				</div>
+					</AppButton>
+				</Stack>
 			</section>
 		</main>
 	);

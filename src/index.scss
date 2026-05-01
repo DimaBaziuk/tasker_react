@@ -104,7 +104,6 @@ button:disabled {
 }
 
 .playerHud__account {
-	display: flex;
 	align-items: center;
 	gap: 8px;
 	padding: 2px 0;
@@ -211,7 +210,6 @@ button:disabled {
 }
 
 .playerHud__collectionItems {
-	display: flex;
 	flex-wrap: wrap;
 	gap: 6px;
 	margin-top: 6px;
@@ -298,7 +296,6 @@ button:disabled {
 }
 
 .heroStats {
-	display: flex;
 	flex-wrap: wrap;
 	gap: 10px;
 	justify-content: flex-end;
@@ -316,7 +313,6 @@ button:disabled {
 .heroStats span {
 	padding: 10px 14px;
 	border-radius: 999px;
-	background: rgba(255, 255, 255, 0.85);
 	border: 1px solid rgba(23, 49, 61, 0.08);
 	color: var(--ink);
 	font-size: 0.78rem;
@@ -357,12 +353,6 @@ button:disabled {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 	gap: 18px;
-}
-
-.homeActions {
-	display: flex;
-	justify-content: flex-end;
-	margin-top: 16px;
 }
 
 .roomCard {
@@ -427,7 +417,6 @@ button:disabled {
 }
 
 .roomCard__facts {
-	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 	margin-top: 18px;
@@ -557,12 +546,6 @@ button:disabled {
 	font-size: 0.86rem;
 	font-weight: 800;
 	color: var(--ink);
-}
-
-.wordRoomForm__row {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto;
-	gap: 8px;
 }
 
 .wordRoomForm input {
@@ -697,18 +680,36 @@ button:disabled {
 	color: rgba(23, 49, 61, 0.88);
 }
 
-.routineItem select {
-	padding: 7px 8px;
-	border-radius: 10px;
-	border: 1px solid rgba(23, 49, 61, 0.22);
-	background: rgba(255, 255, 255, 0.96);
-	font-weight: 800;
-	text-align: center;
+.routineItem__select {
+	width: 100%;
 }
 
-.routineItem select:focus {
-	outline: none;
+.routineItem__select .MuiOutlinedInput-root {
+	border-radius: 10px;
+	background: rgba(255, 255, 255, 0.96);
+	font-weight: 800;
+}
+
+.routineItem__select .MuiSelect-select {
+	padding: 7px 8px;
+	text-align: center;
+	min-height: auto;
+}
+
+.routineItem__select .MuiOutlinedInput-notchedOutline {
+	border-color: rgba(23, 49, 61, 0.22);
+}
+
+.routineItem__select
+	.MuiOutlinedInput-root:hover
+	.MuiOutlinedInput-notchedOutline,
+.routineItem__select
+	.MuiOutlinedInput-root.Mui-focused
+	.MuiOutlinedInput-notchedOutline {
 	border-color: rgba(44, 159, 147, 0.9);
+}
+
+.routineItem__select .MuiOutlinedInput-root.Mui-focused {
 	box-shadow: 0 0 0 3px rgba(44, 159, 147, 0.14);
 }
 
@@ -948,7 +949,6 @@ button:disabled {
 }
 
 .safetySummary__stats {
-	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 	margin-top: 10px;
@@ -990,25 +990,11 @@ button:disabled {
 	backdrop-filter: blur(16px);
 }
 
-.scenePanel__topRow {
-	display: flex;
-	justify-content: space-between;
-	gap: 16px;
-	align-items: flex-start;
-	margin-bottom: 16px;
-}
-
 .scenePanel h2,
 .sideSection h3 {
 	margin: 0;
 	font-size: clamp(1.35rem, 2vw, 2rem);
 	line-height: 1.05;
-}
-
-.scenePanel__description {
-	margin: 10px 0 0;
-	max-width: 68ch;
-	color: rgba(23, 49, 61, 0.74);
 }
 
 .statusBanner {
@@ -1204,7 +1190,6 @@ button:disabled {
 }
 
 .sideSection__header {
-	display: flex;
 	justify-content: space-between;
 	gap: 12px;
 	align-items: flex-start;
@@ -1330,7 +1315,6 @@ button:disabled {
 }
 
 .hintPills {
-	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 }
@@ -1348,20 +1332,8 @@ button:disabled {
 }
 
 .actionRow {
-	display: flex;
 	flex-wrap: wrap;
 	gap: 10px;
-}
-
-.modalOverlay {
-	position: fixed;
-	inset: 0;
-	display: grid;
-	place-items: center;
-	padding: 20px;
-	background: rgba(11, 25, 31, 0.48);
-	backdrop-filter: blur(8px);
-	z-index: 50;
 }
 
 .modalCard {
@@ -1446,7 +1418,6 @@ button:disabled {
 	right: 16px;
 	bottom: 16px;
 	z-index: 80;
-	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	gap: 14px;
@@ -1471,7 +1442,6 @@ button:disabled {
 }
 
 .consentBanner__actions {
-	display: flex;
 	gap: 8px;
 	flex-wrap: wrap;
 }
@@ -1545,6 +1515,14 @@ button:disabled {
 	color: #eaf1f5;
 }
 
+.MuiButton-root.ghostButton,
+.MuiButton-root.ghostButton:hover,
+.MuiButton-root.ghostButton:focus-visible,
+.MuiButton-root.ghostButton:active {
+	background: #5f8f2d;
+	color: #eaf1f5;
+}
+
 .moveBlock:disabled,
 .routeItem:disabled,
 .primaryButton:disabled,
@@ -1557,7 +1535,6 @@ button:disabled {
 
 @media (max-width: 1080px) {
 	.heroHeader,
-	.scenePanel__topRow,
 	.sideSection__header {
 		flex-direction: column;
 		align-items: flex-start;
@@ -1604,7 +1581,6 @@ button:disabled {
 		grid-template-columns: 1fr 62px;
 	}
 
-	.wordRoomForm__row,
 	.wordRoomColumns {
 		grid-template-columns: 1fr;
 	}

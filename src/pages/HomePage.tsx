@@ -1,6 +1,8 @@
 import { useLocation, useNavigate } from 'react-router-dom';
+import { Stack } from '@mui/material';
 import type { RoomDefinition } from '../game';
 import { trackEvent } from '../analytics';
+import { AppButton, AppCard, AppDialog } from '../ui/primitives';
 
 type GameOverState = {
 	gameOver?: boolean;
@@ -55,7 +57,7 @@ const HomePage = ({ rooms }: HomePageProps) => {
 	return (
 		<main className='appShell'>
 			<header className='heroHeader'>
-				<div>
+				<Stack>
 					<p className='eyebrow'>Навчальна гра з алгоритмами дій</p>
 					<h1>
 						Складай маршрут, рухай героя і вчи логіку крок за кроком
@@ -65,20 +67,20 @@ const HomePage = ({ rooms }: HomePageProps) => {
 						допоможи персонажу дістатися до виходу без зіткнення з
 						перешкодами.
 					</p>
-				</div>
+				</Stack>
 
-				<div className='heroStats'>
+				<Stack className='heroStats' direction='row'>
 					<span>6 кімнат</span>
 					<span>Підказки рухів</span>
 					<span>
 						Рандомні перешкоди + слова + розпорядок дня + безпека
 					</span>
-				</div>
+				</Stack>
 			</header>
 
 			<section className='roomSelection'>
-				<button
-					type='button'
+				<AppCard
+					component='button'
 					className='roomCard roomCard--routine'
 					onClick={handleOpenRoutineRoom}
 				>
@@ -89,16 +91,16 @@ const HomePage = ({ rooms }: HomePageProps) => {
 						Три списки: ранок, обід і вечір. Відсортуй 7 пунктів у
 						правильному порядку та набери до 120 балів.
 					</p>
-					<div className='roomCard__facts'>
+					<Stack className='roomCard__facts' direction='row'>
 						<span>3 частини дня</span>
 						<span>7 кроків у кожній</span>
 						<span>Максимум 120</span>
-					</div>
+					</Stack>
 					<span className='roomCard__cta'>Відкрити кімнату</span>
-				</button>
+				</AppCard>
 
-				<button
-					type='button'
+				<AppCard
+					component='button'
 					className='roomCard roomCard--safety'
 					onClick={handleOpenSafetyRoom}
 				>
@@ -110,16 +112,16 @@ const HomePage = ({ rooms }: HomePageProps) => {
 						електроприлади та безпека біля річок і озер. Прибери
 						небезпечні картки перетягуванням.
 					</p>
-					<div className='roomCard__facts'>
+					<Stack className='roomCard__facts' direction='row'>
 						<span>3 секції</span>
 						<span>10 карток на секцію</span>
 						<span>До 300 балів</span>
-					</div>
+					</Stack>
 					<span className='roomCard__cta'>Відкрити кімнату</span>
-				</button>
+				</AppCard>
 
-				<button
-					type='button'
+				<AppCard
+					component='button'
 					className='roomCard roomCard--words'
 					onClick={handleOpenWordRoom}
 				>
@@ -130,18 +132,18 @@ const HomePage = ({ rooms }: HomePageProps) => {
 						Отримай перемішані літери, складай слова, перевіряй
 						результат і дивись, які варіанти залишилися.
 					</p>
-					<div className='roomCard__facts'>
+					<Stack className='roomCard__facts' direction='row'>
 						<span>5 балів за слово</span>
 						<span>11 наборів літер</span>
 						<span>Кнопка "Нові слова"</span>
-					</div>
+					</Stack>
 					<span className='roomCard__cta'>Відкрити кімнату</span>
-				</button>
+				</AppCard>
 
 				{rooms.map((room) => (
-					<button
+					<AppCard
+						component='button'
 						key={room.id}
-						type='button'
 						className='roomCard'
 						style={{
 							background: room.theme.surface,
@@ -159,45 +161,49 @@ const HomePage = ({ rooms }: HomePageProps) => {
 						</span>
 						<h2>{room.title}</h2>
 						<p>{room.description}</p>
-						<div className='roomCard__facts'>
+						<Stack className='roomCard__facts' direction='row'>
 							<span>{room.characterLabel}</span>
 							<span>{room.obstacleCount} перешкод</span>
 							<span>
 								{room.gridSize}×{room.gridSize}
 							</span>
-						</div>
+						</Stack>
 						<span className='roomCard__cta'>Обрати кімнату</span>
-					</button>
+					</AppCard>
 				))}
 			</section>
 
-			{gameOverState?.gameOver ? (
-				<div className='modalOverlay' role='presentation'>
-					<div
-						className='modalCard'
-						role='alertdialog'
-						aria-modal='true'
-						aria-labelledby='game-over-title'
-					>
+			<AppDialog
+				open={Boolean(gameOverState?.gameOver)}
+				onClose={() => navigate('/', { replace: true, state: null })}
+				slotProps={{
+					paper: {
+						className: 'modalCard',
+					},
+				}}
+				title={
+					<>
 						<p className='modalCard__eyebrow'>
-							{gameOverState.title ?? 'Гру завершено'}
+							{gameOverState?.title ?? 'Гру завершено'}
 						</p>
-						<h3 id='game-over-title'>Гру програно</h3>
-						<p>
-							{gameOverState.message ?? 'Спробуйте інший рівень.'}
-						</p>
-						<button
-							type='button'
-							className='primaryButton'
-							onClick={() =>
-								navigate('/', { replace: true, state: null })
-							}
-						>
-							Повернутися до рівнів
-						</button>
-					</div>
-				</div>
-			) : null}
+						<h3>Гру програно</h3>
+					</>
+				}
+				actions={
+					<AppButton
+						type='button'
+						tone='primary'
+						className='primaryButton'
+						onClick={() =>
+							navigate('/', { replace: true, state: null })
+						}
+					>
+						Повернутися до рівнів
+					</AppButton>
+				}
+			>
+				<p>{gameOverState?.message ?? 'Спробуйте інший рівень.'}</p>
+			</AppDialog>
 		</main>
 	);
 };
