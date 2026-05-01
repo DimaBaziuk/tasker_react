@@ -1,11 +1,16 @@
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import {
+	Suspense,
+	lazy,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+	type FormEvent,
+} from 'react';
+import { Stack } from '@mui/material';
 import { createRoom, createRooms, type RoomDefinition } from './game';
-import GamePage from './pages/GamePage';
 import HomePage from './pages/HomePage';
-import RoutineRoomPage from './pages/RoutineRoomPage';
-import SafetyRoomPage from './pages/SafetyRoomPage';
-import WordBuilderRoomPage from './pages/WordBuilderRoomPage';
 import { useLocation } from 'react-router-dom';
 import {
 	getStoredAnalyticsConsent,
@@ -30,6 +35,12 @@ import {
 	saveFirestorePlayerProgress,
 } from './firestoreProgress';
 import GoogleButton from 'react-google-button';
+import { AppButton, AppDialog, AppInput } from './ui/primitives';
+
+const GamePage = lazy(() => import('./pages/GamePage'));
+const RoutineRoomPage = lazy(() => import('./pages/RoutineRoomPage'));
+const SafetyRoomPage = lazy(() => import('./pages/SafetyRoomPage'));
+const WordBuilderRoomPage = lazy(() => import('./pages/WordBuilderRoomPage'));
 
 const SCORE_BY_ROOM: Record<string, number> = {
 	'bright-start': 50,
@@ -381,13 +392,13 @@ const App = () => {
 	if (geoAccessState === 'checking') {
 		return (
 			<main className='geoAccessScreen'>
-				<div className='geoAccessCard'>
+				<Stack className='geoAccessCard'>
 					<p className='modalCard__eyebrow'>Перевірка доступу</p>
 					<h2>Підготовка гри...</h2>
 					<p>
 						Перевіряємо регіон доступу. Це займає декілька секунд.
 					</p>
-				</div>
+				</Stack>
 			</main>
 		);
 	}
@@ -395,14 +406,14 @@ const App = () => {
 	if (geoAccessState === 'blocked') {
 		return (
 			<main className='geoAccessScreen'>
-				<div className='geoAccessCard'>
+				<Stack className='geoAccessCard'>
 					<p className='modalCard__eyebrow'>Доступ обмежено</p>
 					<h2>Цей застосунок недоступний у вашому регіоні.</h2>
 					<p>
 						Якщо ви вважаєте, що це помилка, зверніться до
 						адміністратора сайту.
 					</p>
-				</div>
+				</Stack>
 			</main>
 		);
 	}
@@ -787,7 +798,7 @@ const App = () => {
 
 	return (
 		<>
-			<div className='playerHud' aria-live='polite'>
+			<Stack className='playerHud' aria-live='polite'>
 				<p className='playerHud__authState'>
 					{authUser
 						? isCloudSyncEnabled
@@ -796,7 +807,7 @@ const App = () => {
 						: 'Режим: гість (без збереження)'}
 				</p>
 				{authUser ? (
-					<div className='playerHud__account'>
+					<Stack className='playerHud__account' direction='row'>
 						{authUser.photoURL ? (
 							<img
 								src={authUser.photoURL}
@@ -808,17 +819,18 @@ const App = () => {
 						<p className='playerHud__accountName'>
 							{authDisplayName || 'Користувач'}
 						</p>
-					</div>
+					</Stack>
 				) : null}
 				{authUser ? (
-					<button
+					<AppButton
 						type='button'
+						tone='secondary'
 						className='playerHud__authButton'
 						onClick={handleGoogleSignOut}
 						disabled={!authReady}
 					>
 						Вийти з Google
-					</button>
+					</AppButton>
 				) : (
 					<GoogleButton
 						onClick={handleGoogleSignIn}
@@ -838,9 +850,12 @@ const App = () => {
 						? '(отримано)'
 						: `(прогрес ${collectedLabyrinthCount}/${labyrinthCollectionTarget.length})`}
 				</p>
-				<div className='playerHud__collection'>
+				<Stack className='playerHud__collection'>
 					<p className='playerHud__collectionLabel'>Колекція</p>
-					<div className='playerHud__collectionItems'>
+					<Stack
+						className='playerHud__collectionItems'
+						direction='row'
+					>
 						{visibleEmojis.length === 0 ? (
 							<span className='playerHud__empty'>
 								Поки порожньо
@@ -852,113 +867,123 @@ const App = () => {
 								</span>
 							))
 						)}
-					</div>
-				</div>
-				<button
+					</Stack>
+				</Stack>
+				<AppButton
 					type='button'
+					tone='secondary'
 					className='playerHud__reset'
 					onClick={resetProgress}
 				>
 					Скинути прогрес
-				</button>
-			</div>
+				</AppButton>
+			</Stack>
 
-			<Routes>
-				<Route
-					path='/'
-					element={
-						<HomePage
-							rooms={rooms}
-							onRegenerateRooms={regenerateRooms}
-						/>
-					}
-				/>
-				<Route
-					path='/routine-room'
-					element={
-						<RoutineRoomPage onRoomOutcome={handleRoomOutcome} />
-					}
-				/>
-				<Route
-					path='/word-room'
-					element={
-						<WordBuilderRoomPage
-							onRoomOutcome={handleRoomOutcome}
-						/>
-					}
-				/>
-				<Route
-					path='/safety-room'
-					element={
-						<SafetyRoomPage onRoomOutcome={handleRoomOutcome} />
-					}
-				/>
-				<Route
-					path='/game/:roomId'
-					element={
-						<GamePage
-							rooms={rooms}
-							onRegenerateRooms={regenerateRooms}
-							onRoomOutcome={handleRoomOutcome}
-							onCollectEmoji={handleCollectEmoji}
-						/>
-					}
-				/>
-				<Route path='*' element={<Navigate to='/' replace />} />
-			</Routes>
+			<Suspense fallback={null}>
+				<Routes>
+					<Route
+						path='/'
+						element={
+							<HomePage
+								rooms={rooms}
+								onRegenerateRooms={regenerateRooms}
+							/>
+						}
+					/>
+					<Route
+						path='/routine-room'
+						element={
+							<RoutineRoomPage
+								onRoomOutcome={handleRoomOutcome}
+							/>
+						}
+					/>
+					<Route
+						path='/word-room'
+						element={
+							<WordBuilderRoomPage
+								onRoomOutcome={handleRoomOutcome}
+							/>
+						}
+					/>
+					<Route
+						path='/safety-room'
+						element={
+							<SafetyRoomPage onRoomOutcome={handleRoomOutcome} />
+						}
+					/>
+					<Route
+						path='/game/:roomId'
+						element={
+							<GamePage
+								rooms={rooms}
+								onRegenerateRooms={regenerateRooms}
+								onRoomOutcome={handleRoomOutcome}
+								onCollectEmoji={handleCollectEmoji}
+							/>
+						}
+					/>
+					<Route path='*' element={<Navigate to='/' replace />} />
+				</Routes>
+			</Suspense>
 
-			{showNameModal ? (
-				<div className='modalOverlay' role='presentation'>
-					<div
-						className='modalCard modalCard--welcome'
-						role='dialog'
-						aria-modal='true'
-						aria-labelledby='welcome-title'
-					>
+			<AppDialog
+				open={showNameModal}
+				onClose={() => undefined}
+				slotProps={{
+					paper: {
+						className: 'modalCard modalCard--welcome',
+					},
+				}}
+				title={
+					<>
 						<p className='modalCard__eyebrow'>Початок гри</p>
 						<h3 id='welcome-title'>Увійди або продовж як гість</h3>
-						<p>
-							1 кімната: 50 балів, 2 кімната: 100 балів, 3
-							кімната: 125 балів, кімната "Щоденні справи": до 120
-							балів (по 40 за ранок, обід і вечір), кімната
-							"Словотвор": 5 балів за кожне правильне слово,
-							кімната "Безпека вдома": до 300 балів.
-						</p>
-						{authUser ? null : (
-							<p className='playerForm__note'>
-								Якщо просто введеш ім'я, це буде гостьовий
-								режим: прогрес не зберігається після закриття
-								вкладки.
-							</p>
-						)}
+					</>
+				}
+			>
+				<p>
+					1 кімната: 50 балів, 2 кімната: 100 балів, 3 кімната: 125
+					балів, кімната "Щоденні справи": до 120 балів (по 40 за
+					ранок, обід і вечір), кімната "Словотвор": 5 балів за кожне
+					правильне слово, кімната "Безпека вдома": до 300 балів.
+				</p>
+				{authUser ? null : (
+					<p className='playerForm__note'>
+						Якщо просто введеш ім'я, це буде гостьовий режим:
+						прогрес не зберігається після закриття вкладки.
+					</p>
+				)}
 
-						<form
-							className='playerForm'
-							onSubmit={submitPlayerName}
-						>
-							<label htmlFor='playerNameInput'>Ім'я</label>
-							<input
-								id='playerNameInput'
-								type='text'
-								value={nameInput}
-								onChange={(event) =>
-									setNameInput(event.target.value)
-								}
-								autoFocus
-								maxLength={24}
-								required
-							/>
-							<button type='submit' className='primaryButton'>
-								Почати гру
-							</button>
-						</form>
-					</div>
-				</div>
-			) : null}
+				<form className='playerForm' onSubmit={submitPlayerName}>
+					<label htmlFor='playerNameInput'>Ім'я</label>
+					<AppInput
+						id='playerNameInput'
+						type='text'
+						value={nameInput}
+						onChange={(event) => setNameInput(event.target.value)}
+						autoFocus
+						required
+						slotProps={{ htmlInput: { maxLength: 24 } }}
+					/>
+					<AppButton
+						type='submit'
+						tone='primary'
+						className='primaryButton'
+					>
+						Почати гру
+					</AppButton>
+				</form>
+			</AppDialog>
 
 			{analyticsConsent === null ? (
-				<div className='consentBanner' role='dialog' aria-live='polite'>
-					<div>
+				<Stack
+					className='consentBanner'
+					direction='row'
+					role='dialog'
+					aria-live='polite'
+				>
+					<Stack>
 						<p className='consentBanner__title'>
 							Налаштування аналітики
 						</p>
@@ -966,24 +991,26 @@ const App = () => {
 							Дозволиш збирати анонімні події, щоб покращувати
 							гру?
 						</p>
-					</div>
-					<div className='consentBanner__actions'>
-						<button
+					</Stack>
+					<Stack className='consentBanner__actions' direction='row'>
+						<AppButton
 							type='button'
+							tone='secondary'
 							className='secondaryButton'
 							onClick={() => updateConsent('denied')}
 						>
 							Ні, дякую
-						</button>
-						<button
+						</AppButton>
+						<AppButton
 							type='button'
+							tone='primary'
 							className='primaryButton'
 							onClick={() => updateConsent('granted')}
 						>
 							Дозволити
-						</button>
-					</div>
-				</div>
+						</AppButton>
+					</Stack>
+				</Stack>
 			) : null}
 		</>
 	);

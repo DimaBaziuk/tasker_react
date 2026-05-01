@@ -5,4 +5,40 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   base: './',
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) {
+            return undefined
+          }
+
+          if (id.includes('node_modules/firebase')) {
+            return 'vendor-firebase'
+          }
+
+          if (
+            id.includes('node_modules/@mui') ||
+            id.includes('node_modules/@emotion')
+          ) {
+            return 'vendor-mui'
+          }
+
+          if (
+            id.includes('node_modules/react') ||
+            id.includes('node_modules/react-dom') ||
+            id.includes('node_modules/react-router')
+          ) {
+            return 'vendor-react'
+          }
+
+          if (id.includes('node_modules/@dnd-kit')) {
+            return 'vendor-dnd'
+          }
+
+          return 'vendor-misc'
+        },
+      },
+    },
+  },
 })

@@ -1,4 +1,5 @@
 import { FormEvent, useMemo, useState } from 'react';
+import { Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { trackEvent } from '../analytics';
 import {
@@ -12,6 +13,7 @@ import {
 } from '../word_room/engine';
 import type { WordRoundResult } from '../word_room/types';
 import { WORD_PACKS } from '../word_room/wordPacks';
+import { AppButton, AppCard, AppInput } from '../ui/primitives';
 
 interface WordBuilderRoomPageProps {
 	onRoomOutcome: (
@@ -131,7 +133,7 @@ const WordBuilderRoomPage = ({ onRoomOutcome }: WordBuilderRoomPageProps) => {
 	return (
 		<main className='appShell'>
 			<header className='heroHeader'>
-				<div>
+				<Stack>
 					<p className='eyebrow'>Нова кімната: Словотвор</p>
 					<h1>Склади якомога більше слів із перемішаних літер</h1>
 					<p className='heroLead'>
@@ -139,27 +141,31 @@ const WordBuilderRoomPage = ({ onRoomOutcome }: WordBuilderRoomPageProps) => {
 						натискай "Перевірити". За кожне правильне слово отримуєш{' '}
 						{POINTS_PER_WORD} балів.
 					</p>
-				</div>
+				</Stack>
 
-				<div className='heroStats heroStats--wordRoom'>
+				<Stack
+					className='heroStats heroStats--wordRoom'
+					direction='row'
+				>
 					<span className='wordRoomStat'>
 						Наборів: {WORD_PACKS.length}
 					</span>
 					<span className='wordRoomStat'>
 						Поточний набір: {currentPack.validWords.length} слів
 					</span>
-					<button
+					<AppButton
 						type='button'
+						tone='ghost'
 						className='ghostButton'
 						onClick={() => navigate('/')}
 					>
 						До кімнат
-					</button>
-				</div>
+					</AppButton>
+				</Stack>
 			</header>
 
 			<section className='wordRoom'>
-				<article className='wordRoomCard'>
+				<AppCard component='article' className='wordRoomCard'>
 					<h2>Літери цього раунду</h2>
 					<p className='wordRoomLetters'>{lettersDisplay}</p>
 					<p className='wordRoomHint'>
@@ -169,7 +175,7 @@ const WordBuilderRoomPage = ({ onRoomOutcome }: WordBuilderRoomPageProps) => {
 
 					<form className='wordRoomForm' onSubmit={handleAddWord}>
 						<label htmlFor='wordInput'>Твоє слово</label>
-						<input
+						<AppInput
 							id='wordInput'
 							type='text'
 							value={candidateWord}
@@ -179,38 +185,45 @@ const WordBuilderRoomPage = ({ onRoomOutcome }: WordBuilderRoomPageProps) => {
 							disabled={isRoundChecked}
 							placeholder='Наприклад: штора'
 							autoComplete='off'
+							fullWidth
 						/>
 
-						<div className='actionRow wordRoomActions'>
-							<button
+						<Stack
+							className='actionRow wordRoomActions'
+							direction='row'
+						>
+							<AppButton
 								type='submit'
+								tone='secondary'
 								className='secondaryButton'
 								disabled={isRoundChecked}
 							>
 								Додати
-							</button>
-							<button
+							</AppButton>
+							<AppButton
 								type='button'
+								tone='primary'
 								className='primaryButton'
 								onClick={handleCheckRound}
 								disabled={isRoundChecked}
 							>
 								Перевірити
-							</button>
+							</AppButton>
 							{isRoundChecked ? (
-								<button
+								<AppButton
 									type='button'
+									tone='ghost'
 									className='ghostButton'
 									onClick={handleNewWords}
 								>
 									Нові слова
-								</button>
+								</AppButton>
 							) : null}
-						</div>
+						</Stack>
 					</form>
-				</article>
+				</AppCard>
 
-				<article className='wordRoomCard'>
+				<AppCard component='article' className='wordRoomCard'>
 					<h2>Твої слова ({submittedWords.length})</h2>
 					{submittedWords.length === 0 ? (
 						<p className='emptyState'>Поки що список порожній.</p>
@@ -221,9 +234,9 @@ const WordBuilderRoomPage = ({ onRoomOutcome }: WordBuilderRoomPageProps) => {
 							))}
 						</ul>
 					)}
-				</article>
+				</AppCard>
 
-				<article className='wordRoomCard'>
+				<AppCard component='article' className='wordRoomCard'>
 					<h2>Результат</h2>
 					<p className='wordRoomFeedback'>{feedback}</p>
 
@@ -233,8 +246,8 @@ const WordBuilderRoomPage = ({ onRoomOutcome }: WordBuilderRoomPageProps) => {
 								Зараховано: {result.acceptedWords.length} слів ={' '}
 								<strong>{result.score} балів</strong>
 							</p>
-							<div className='wordRoomColumns'>
-								<div>
+							<Stack className='wordRoomColumns'>
+								<Stack>
 									<h3>Знайдено</h3>
 									{result.acceptedWords.length > 0 ? (
 										<ul className='wordRoomList'>
@@ -249,8 +262,8 @@ const WordBuilderRoomPage = ({ onRoomOutcome }: WordBuilderRoomPageProps) => {
 											Немає зарахованих слів.
 										</p>
 									)}
-								</div>
-								<div>
+								</Stack>
+								<Stack>
 									<h3>Ще можна було скласти</h3>
 									{result.missedWords.length > 0 ? (
 										<ul className='wordRoomList'>
@@ -263,8 +276,8 @@ const WordBuilderRoomPage = ({ onRoomOutcome }: WordBuilderRoomPageProps) => {
 											Ти знайшов усі слова.
 										</p>
 									)}
-								</div>
-							</div>
+								</Stack>
+							</Stack>
 						</>
 					) : (
 						<p className='helperText'>
@@ -272,7 +285,7 @@ const WordBuilderRoomPage = ({ onRoomOutcome }: WordBuilderRoomPageProps) => {
 							"Перевірити".
 						</p>
 					)}
-				</article>
+				</AppCard>
 			</section>
 		</main>
 	);

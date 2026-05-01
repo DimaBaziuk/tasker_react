@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react';
+import { Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import MenuItem from '@mui/material/MenuItem';
+import type { SelectChangeEvent } from '@mui/material/Select';
 import { trackEvent } from '../analytics';
+import { AppButton, AppCard, AppDialog, AppSelect } from '../ui/primitives';
 
 interface RoutineRoomPageProps {
 	onRoomOutcome: (
@@ -202,6 +206,16 @@ const RoutineRoomPage = ({ onRoomOutcome }: RoutineRoomPageProps) => {
 		setTaskStatuses(null);
 	};
 
+	const handleRankChange = (
+		sectionKey: DayPartKey,
+		task: string,
+		event: SelectChangeEvent<string>,
+	) => {
+		const rawValue = event.target.value;
+		const nextValue = rawValue ? Number(rawValue) : null;
+		updateAnswer(sectionKey, task, nextValue);
+	};
+
 	const getUsedRanksInSection = (
 		sectionKey: DayPartKey,
 		currentTask: string,
@@ -311,7 +325,7 @@ const RoutineRoomPage = ({ onRoomOutcome }: RoutineRoomPageProps) => {
 	return (
 		<main className='appShell'>
 			<header className='heroHeader'>
-				<div>
+				<Stack>
 					<p className='eyebrow'>Нова кімната: Щоденні справи</p>
 					<h1>
 						Ранок, обід, вечір: постав справи у правильному порядку
@@ -321,29 +335,34 @@ const RoutineRoomPage = ({ onRoomOutcome }: RoutineRoomPageProps) => {
 						номер від 1 до 7 так, як це відбувається в реальному
 						дні.
 					</p>
-				</div>
-				<div className='heroStats'>
+				</Stack>
+				<Stack className='heroStats' direction='row'>
 					<span>3 частини дня</span>
 					<span>По 40 балів за частину</span>
 					<span>Максимум: 120 балів</span>
-					<button
+					<AppButton
 						type='button'
+						tone='secondary'
 						className='heroStats__hintButton'
 						onClick={openHintModal}
 					>
 						Підказка ({hintsLeft})
-					</button>
-				</div>
+					</AppButton>
+				</Stack>
 			</header>
 
 			<section className='routineRoom'>
 				{sections.map((section) => (
-					<article key={section.key} className='routineCard'>
+					<AppCard
+						key={section.key}
+						component='article'
+						className='routineCard'
+					>
 						<header className='routineCard__header'>
-							<div>
+							<Stack>
 								<p className='eyebrow'>{section.title}</p>
 								<h3>{section.description}</h3>
-							</div>
+							</Stack>
 							{sectionResults ? (
 								<span className='routineCard__score'>
 									{sectionResults[section.key].score} /{' '}
@@ -352,7 +371,7 @@ const RoutineRoomPage = ({ onRoomOutcome }: RoutineRoomPageProps) => {
 							) : null}
 						</header>
 
-						<div className='routineList'>
+						<Stack className='routineList'>
 							{section.shuffledTasks.map((task) => {
 								const usedRanks = getUsedRanksInSection(
 									section.key,
@@ -378,39 +397,46 @@ const RoutineRoomPage = ({ onRoomOutcome }: RoutineRoomPageProps) => {
 											.join(' ')}
 									>
 										<span>{task}</span>
-										<select
+										<AppSelect
+											className='routineItem__select'
 											value={
-												answers[section.key][task] ?? ''
+												answers[section.key][task] ===
+												null
+													? ''
+													: String(
+															answers[
+																section.key
+															][task],
+														)
 											}
-											onChange={(event) => {
-												const nextValue = event.target
-													.value
-													? Number(event.target.value)
-													: null;
-												updateAnswer(
+											onChange={(event) =>
+												handleRankChange(
 													section.key,
 													task,
-													nextValue,
-												);
-											}}
+													event,
+												)
+											}
+											renderValue={(selected) =>
+												selected || '№'
+											}
 										>
-											<option value=''>№</option>
+											<MenuItem value=''>№</MenuItem>
 											{rankOptions.map((option) => (
-												<option
+												<MenuItem
 													key={option}
-													value={option}
+													value={String(option)}
 													disabled={usedRanks.has(
 														option,
 													)}
 												>
 													{option}
-												</option>
+												</MenuItem>
 											))}
-										</select>
+										</AppSelect>
 									</label>
 								);
 							})}
-						</div>
+						</Stack>
 
 						{sectionResults ? (
 							<p className='routineCard__details'>
@@ -419,75 +445,84 @@ const RoutineRoomPage = ({ onRoomOutcome }: RoutineRoomPageProps) => {
 								{MAX_TASKS}
 							</p>
 						) : null}
-					</article>
+					</AppCard>
 				))}
 			</section>
 
 			<section className='routineActions'>
-				<div className='statusBanner'>
+				<Stack className='statusBanner'>
 					<strong>{feedback}</strong>
 					<span>
 						{totalScore === null
 							? 'Після перевірки отримаєш результат по кожній частині дня.'
 							: `Поточний результат: ${totalScore}/120.`}
 					</span>
-				</div>
-				<div className='actionRow'>
-					<button
+				</Stack>
+				<Stack className='actionRow' direction='row'>
+					<AppButton
 						type='button'
+						tone='primary'
 						className='primaryButton'
 						onClick={checkAnswers}
 					>
 						Перевірити
-					</button>
-					<button
+					</AppButton>
+					<AppButton
 						type='button'
+						tone='secondary'
 						className='secondaryButton'
 						onClick={resetRound}
 					>
 						Новий порядок
-					</button>
-					<button
+					</AppButton>
+					<AppButton
 						type='button'
+						tone='ghost'
 						className='ghostButton'
 						onClick={() => navigate('/')}
 					>
 						До кімнат
-					</button>
-				</div>
+					</AppButton>
+				</Stack>
 			</section>
 
-			{showHintModal ? (
-				<div className='modalOverlay' role='presentation'>
-					<div
-						className='modalCard modalCard--hint'
-						role='dialog'
-						aria-modal='true'
-						aria-labelledby='routine-hint-title'
-					>
+			<AppDialog
+				open={showHintModal}
+				onClose={() => setShowHintModal(false)}
+				slotProps={{
+					paper: {
+						className: 'modalCard modalCard--hint',
+					},
+				}}
+				title={
+					<>
 						<p className='modalCard__eyebrow'>Підказка</p>
 						<h3 id='routine-hint-title'>
 							Історія правильного порядку
 						</h3>
-						<p className='routineHintStory'>
-							Вранці ми: 😴 → 🛏️ → 🚿 → 🪥 → 💇 → 🍳 → 🎒.
-						</p>
-						<p className='routineHintStory'>
-							Після школи: 🧼 → 🍲 → 🍽️ → 🛋️ → 📚 → 🙋 → 🎨.
-						</p>
-						<p className='routineHintStory'>
-							Увечері: 🍽️ → 🧹 → 👕 → 🎒 → 🪟 → 🚿 → 🪥🌙.
-						</p>
-						<button
-							type='button'
-							className='primaryButton'
-							onClick={() => setShowHintModal(false)}
-						>
-							Зрозуміло
-						</button>
-					</div>
-				</div>
-			) : null}
+					</>
+				}
+				actions={
+					<AppButton
+						type='button'
+						tone='primary'
+						className='primaryButton'
+						onClick={() => setShowHintModal(false)}
+					>
+						Зрозуміло
+					</AppButton>
+				}
+			>
+				<p className='routineHintStory'>
+					Вранці ми: 😴 → 🛏️ → 🚿 → 🪥 → 💇 → 🍳 → 🎒.
+				</p>
+				<p className='routineHintStory'>
+					Після школи: 🧼 → 🍲 → 🍽️ → 🛋️ → 📚 → 🙋 → 🎨.
+				</p>
+				<p className='routineHintStory'>
+					Увечері: 🍽️ → 🧹 → 👕 → 🎒 → 🪟 → 🚿 → 🪥🌙.
+				</p>
+			</AppDialog>
 		</main>
 	);
 };

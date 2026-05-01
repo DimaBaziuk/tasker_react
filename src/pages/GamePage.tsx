@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Stack } from '@mui/material';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { trackEvent } from '../analytics';
 import {
@@ -11,6 +12,7 @@ import {
 	type Point,
 	type RoomDefinition,
 } from '../game';
+import { AppButton, AppCard, AppDialog } from '../ui/primitives';
 
 type GameState = 'ready' | 'running' | 'success';
 
@@ -254,7 +256,7 @@ const GamePage = ({
 		}
 
 		return (
-			<div
+			<Stack
 				className='board'
 				style={{ ['--grid-size' as string]: selectedRoom.gridSize }}
 			>
@@ -268,7 +270,7 @@ const GamePage = ({
 					const isCurrent = isSamePoint(cell, currentPosition);
 
 					return (
-						<div
+						<Stack
 							key={key}
 							className={[
 								'cell',
@@ -307,23 +309,23 @@ const GamePage = ({
 									{selectedRoom.characterEmoji}
 								</span>
 							) : null}
-						</div>
+						</Stack>
 					);
 				})}
-			</div>
+			</Stack>
 		);
 	};
 
 	return (
 		<main className='appShell'>
 			<header className='heroHeader'>
-				<div>
+				<Stack>
 					<p className='eyebrow'>{selectedRoom.difficultyLabel}</p>
 					<h1>{selectedRoom.title}</h1>
 					<p className='heroLead'>{selectedRoom.description}</p>
-				</div>
+				</Stack>
 
-				<div className='heroStats'>
+				<Stack className='heroStats' direction='row'>
 					<span
 						style={{
 							alignSelf: 'center',
@@ -338,79 +340,83 @@ const GamePage = ({
 					>
 						Кроків: {selectedRoom.solutionMoves.length}
 					</span>
-					<button
+					<AppButton
 						type='button'
+						tone='ghost'
 						className='ghostButton'
 						onClick={regenerateLevel}
 						disabled={gameState === 'running'}
 					>
 						Перегенерувати рівень
-					</button>
-					<button
+					</AppButton>
+					<AppButton
 						type='button'
+						tone='ghost'
 						className='ghostButton'
 						onClick={() => navigate('/')}
 					>
 						До кімнат
-					</button>
-				</div>
+					</AppButton>
+				</Stack>
 			</header>
 
 			<section className='gameLayout'>
-				<article
+				<AppCard
+					component='article'
 					className='scenePanel'
 					style={{
 						background: selectedRoom.theme.surface,
 						boxShadow: `0 24px 58px ${selectedRoom.theme.glow}`,
 					}}
 				>
-					<div className='statusBanner' data-state={gameState}>
+					<Stack className='statusBanner' data-state={gameState}>
 						<strong>{message}</strong>
 						<span>
 							Потрібно пройти {selectedRoom.solutionMoves.length}{' '}
 							кроків до виходу без зіткнення.
 						</span>
-					</div>
+					</Stack>
 
-					<div className='boardFrame'>{renderBoard()}</div>
+					<Stack className='boardFrame'>{renderBoard()}</Stack>
 
-					<div className='scenePanel__footer'>
-						<div>
+					<Stack className='scenePanel__footer'>
+						<Stack>
 							<span className='footerLabel'>Персонаж</span>
 							<strong>{selectedRoom.characterLabel}</strong>
-						</div>
-						<div>
+						</Stack>
+						<Stack>
 							<span className='footerLabel'>Перешкоди</span>
 							<strong>{selectedRoom.obstacleCount}</strong>
-						</div>
-						<div>
+						</Stack>
+						<Stack>
 							<span className='footerLabel'>Позиція</span>
 							<strong>
 								{position
 									? `${position.x + 1}, ${position.y + 1}`
 									: `${selectedRoom.start.x + 1}, ${selectedRoom.start.y + 1}`}
 							</strong>
-						</div>
-					</div>
-				</article>
+						</Stack>
+					</Stack>
+				</AppCard>
 
 				<aside className='sidebar'>
-					<section className='sideSection'>
-						<div className='sideSection__header'>
-							<div>
+					<AppCard component='section' className='sideSection'>
+						<Stack className='sideSection__header' direction='row'>
+							<Stack>
 								<p className='eyebrow'>Блоки руху</p>
 								<h3>Збери маршрут</h3>
-							</div>
+							</Stack>
 							<span className='sideSection__note'>
 								Потрібно обрати правильну послідовність
 							</span>
-						</div>
+						</Stack>
 
-						<div className='movePalette'>
+						<Stack className='movePalette'>
 							{MOVE_DEFINITIONS.map((move) => (
-								<button
+								<AppButton
 									key={move.id}
 									type='button'
+									tone='ghost'
 									className='moveBlock'
 									onClick={() => addMove(move.id)}
 									disabled={gameState === 'running'}
@@ -421,23 +427,23 @@ const GamePage = ({
 									<span className='moveBlock__label'>
 										{move.label}
 									</span>
-								</button>
+								</AppButton>
 							))}
-						</div>
-					</section>
+						</Stack>
+					</AppCard>
 
-					<section className='sideSection'>
-						<div className='sideSection__header'>
-							<div>
+					<AppCard component='section' className='sideSection'>
+						<Stack className='sideSection__header' direction='row'>
+							<Stack>
 								<p className='eyebrow'>Зібраний шлях</p>
 								<h3>Послідовність</h3>
-							</div>
+							</Stack>
 							<span className='sideSection__note'>
 								Натисни на блок, щоб прибрати його
 							</span>
-						</div>
+						</Stack>
 
-						<div
+						<Stack
 							className='routeList'
 							aria-label='Зібрана послідовність блоків'
 						>
@@ -451,9 +457,10 @@ const GamePage = ({
 									const definition = getMoveDefinition(move);
 
 									return (
-										<button
+										<AppButton
 											key={`${move}-${index}`}
 											type='button'
+											tone='ghost'
 											className='routeItem'
 											onClick={() => removeMoveAt(index)}
 											disabled={gameState === 'running'}
@@ -467,29 +474,29 @@ const GamePage = ({
 											<span className='routeItem__label'>
 												{definition.label}
 											</span>
-										</button>
+										</AppButton>
 									);
 								})
 							)}
-						</div>
+						</Stack>
 
 						<p className='helperText'>
 							Список прокручується, якщо блоків стане багато.
 							Можеш будувати довгий маршрут без обмеження.
 						</p>
-					</section>
+					</AppCard>
 
-					<section className='sideSection'>
-						<div className='sideSection__header'>
-							<div>
+					<AppCard component='section' className='sideSection'>
+						<Stack className='sideSection__header' direction='row'>
+							<Stack>
 								<p className='eyebrow'>Підказки</p>
 								<h3>Як будувати послідовність</h3>
-							</div>
-						</div>
+							</Stack>
+						</Stack>
 
 						<p className='hintText'>{selectedRoom.hintSummary}</p>
 
-						<div className='hintPills'>
+						<Stack className='hintPills' direction='row'>
 							{selectedRoom.solutionMoves
 								.slice(0, 3)
 								.map((move, index) => {
@@ -505,17 +512,18 @@ const GamePage = ({
 										</span>
 									);
 								})}
-						</div>
+						</Stack>
 
 						<p className='helperText'>
 							Якщо герой торкнеться перешкоди, ти втратиш одну
 							спробу. Після другої невдачі повернешся на головну.
 						</p>
-					</section>
+					</AppCard>
 
-					<div className='actionRow'>
-						<button
+					<Stack className='actionRow' direction='row'>
+						<AppButton
 							type='button'
+							tone='primary'
 							className='primaryButton'
 							onClick={runSequence}
 							disabled={
@@ -523,56 +531,66 @@ const GamePage = ({
 							}
 						>
 							Запустити маршрут
-						</button>
-						<button
+						</AppButton>
+						<AppButton
 							type='button'
+							tone='secondary'
 							className='secondaryButton'
 							onClick={clearSequence}
 						>
 							Очистити
-						</button>
-						<button
+						</AppButton>
+						<AppButton
 							type='button'
+							tone='ghost'
 							className='ghostButton'
 							onClick={() => navigate('/')}
 						>
 							До кімнат
-						</button>
-					</div>
+						</AppButton>
+					</Stack>
 				</aside>
 			</section>
 
-			{showGameOverModal ? (
-				<div className='modalOverlay' role='presentation'>
-					<div
-						className='modalCard'
-						role='alertdialog'
-						aria-modal='true'
-						aria-labelledby='game-over-title'
-					>
+			<AppDialog
+				open={showGameOverModal}
+				onClose={() => undefined}
+				slotProps={{
+					paper: {
+						className: 'modalCard',
+					},
+				}}
+				title={
+					<>
 						<p className='modalCard__eyebrow'>Гру завершено</p>
 						<h3 id='game-over-title'>Гру програно</h3>
-						<p>
-							Спробуйте повторити рівень ще раз або оберіть іншу
-							кімнату.
-						</p>
-						<button
+					</>
+				}
+				actions={
+					<>
+						<AppButton
 							type='button'
+							tone='primary'
 							className='primaryButton'
 							onClick={retryRoom}
 						>
 							Повторити рівень
-						</button>
-						<button
+						</AppButton>
+						<AppButton
 							type='button'
+							tone='ghost'
 							className='ghostButton'
 							onClick={() => navigate('/')}
 						>
 							До кімнат
-						</button>
-					</div>
-				</div>
-			) : null}
+						</AppButton>
+					</>
+				}
+			>
+				<p>
+					Спробуйте повторити рівень ще раз або оберіть іншу кімнату.
+				</p>
+			</AppDialog>
 		</main>
 	);
 };
