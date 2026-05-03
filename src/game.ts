@@ -67,7 +67,7 @@ const ROOM_PRESETS = [
         characterLabel: "Хлопець",
         characterEmoji: "👦",
         gridSize: 7,
-        obstacleCount: 6,
+        obstacleCount: 7,
         start: { x: 0, y: 6 },
         exit: { x: 6, y: 0 },
         obstacleEmoji: "🧱",
@@ -76,6 +76,7 @@ const ROOM_PRESETS = [
             { emoji: "🧸", label: "Іграшка" },
             { emoji: "⭐", label: "Зірка" },
             { emoji: "🎲", label: "Кубик" },
+            { emoji: "🪀", label: "Йо-йо" },
         ],
         description: "Перший маршрут для знайомства з блоками: рухайся обережно, але сміливо.",
         successTitle: "Чудово!",
@@ -98,7 +99,7 @@ const ROOM_PRESETS = [
         characterLabel: "Дівчина",
         characterEmoji: "👧",
         gridSize: 8,
-        obstacleCount: 12,
+        obstacleCount: 13,
         start: { x: 0, y: 7 },
         exit: { x: 7, y: 1 },
         obstacleEmoji: "🧱",
@@ -107,6 +108,8 @@ const ROOM_PRESETS = [
             { emoji: "🧩", label: "Пазл" },
             { emoji: "🎈", label: "Кулька" },
             { emoji: "🪄", label: "Паличка" },
+            { emoji: "🎯", label: "Мішень" },
+            { emoji: "🛹", label: "Скейт" },
         ],
         description: "Тут більше перешкод, тож маршрут треба будувати акуратніше.",
         successTitle: "Супер!",
@@ -129,7 +132,7 @@ const ROOM_PRESETS = [
         characterLabel: "Тваринка",
         characterEmoji: "🦝",
         gridSize: 9,
-        obstacleCount: 16,
+        obstacleCount: 17,
         start: { x: 0, y: 8 },
         exit: { x: 8, y: 0 },
         obstacleEmoji: "🌲",
@@ -142,6 +145,9 @@ const ROOM_PRESETS = [
             { emoji: "🍁", label: "Листок" },
             { emoji: "🌰", label: "Горішок" },
             { emoji: "🪵", label: "Колода" },
+            { emoji: "🦔", label: "Їжачок" },
+            { emoji: "🪺", label: "Гніздо" },
+            { emoji: "🦋", label: "Метелик" },
         ],
         description: "Більше перешкод, більше уважності та більше місця для тренування логіки.",
         successTitle: "Вітаємо!",
@@ -203,7 +209,7 @@ function buildRoom(preset: (typeof ROOM_PRESETS)[number]): RoomDefinition {
     let generatedObstacles: Point[] = [];
     let generatedDecorations: Decoration[] = [];
     let solutionMoves: MoveId[] = [];
-    const targetDecorationCount = 4 + Math.min(3, preset.obstacleCount - 3);
+    const targetDecorationCount = preset.decorationPool.length;
 
     for (let attempt = 0; attempt < 300; attempt += 1) {
         const blocked = new Set<string>();

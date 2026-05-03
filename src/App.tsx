@@ -8,7 +8,26 @@ import {
 	useState,
 	type FormEvent,
 } from 'react';
-import { Stack } from '@mui/material';
+import {
+	Alert,
+	Avatar,
+	Box,
+	Button,
+	Chip,
+	Collapse,
+	Divider,
+	IconButton,
+	Paper,
+	Stack,
+	Typography,
+} from '@mui/material';
+import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
+import GoogleIcon from '@mui/icons-material/Google';
+import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import { createRoom, createRooms, type RoomDefinition } from './game';
 import HomePage from './pages/HomePage';
 import { useLocation } from 'react-router-dom';
@@ -34,7 +53,6 @@ import {
 	loadFirestorePlayerProgress,
 	saveFirestorePlayerProgress,
 } from './firestoreProgress';
-import GoogleButton from 'react-google-button';
 import { AppButton, AppDialog, AppInput } from './ui/primitives';
 
 const GamePage = lazy(() => import('./pages/GamePage'));
@@ -51,7 +69,7 @@ const SCORE_BY_ROOM: Record<string, number> = {
 };
 
 const STORAGE_KEY = 'tasker-player-session';
-const FULL_COLLECTION_BONUS = 350;
+const FULL_COLLECTION_BONUS = 400;
 const ROUTINE_ROOM_ID = 'daily-routines';
 const WORD_ROOM_ID = 'word-builder';
 const SAFETY_ROOM_ID = 'safety-lab';
@@ -194,6 +212,7 @@ const App = () => {
 	const [isCloudSyncEnabled, setIsCloudSyncEnabled] = useState<boolean>(() =>
 		isFirestoreSyncEnabled(),
 	);
+	const [isPlayerHudExpanded, setIsPlayerHudExpanded] = useState(false);
 	const authDisplayName = useMemo(() => {
 		if (!authUser) {
 			return '';
@@ -796,88 +815,213 @@ const App = () => {
 		navigate('/', { replace: true });
 	};
 
+	const isGoogleSignedIn = Boolean(authUser);
+	const displayName =
+		playerName ||
+		(isGoogleSignedIn ? authDisplayName || 'Користувач' : 'Гість');
+	const collectionProgressLabel = hasFullLabyrinthCollection
+		? 'бонус отримано'
+		: `прогрес ${collectedLabyrinthCount}/${labyrinthCollectionTarget.length}`;
+
 	return (
 		<>
-			<Stack className='playerHud' aria-live='polite'>
-				<p className='playerHud__authState'>
-					{authUser
-						? isCloudSyncEnabled
-							? 'Google: підключено'
-							: 'Google: підключено (хмара вимкнена)'
-						: 'Режим: гість (без збереження)'}
-				</p>
-				{authUser ? (
-					<Stack className='playerHud__account' direction='row'>
-						{authUser.photoURL ? (
-							<img
-								src={authUser.photoURL}
-								alt='Аватар профілю Google'
-								className='playerHud__avatar'
-								referrerPolicy='no-referrer'
-							/>
-						) : null}
-						<p className='playerHud__accountName'>
-							{authDisplayName || 'Користувач'}
-						</p>
-					</Stack>
-				) : null}
-				{authUser ? (
-					<AppButton
-						type='button'
-						tone='secondary'
-						className='playerHud__authButton'
-						onClick={handleGoogleSignOut}
-						disabled={!authReady}
-					>
-						Вийти з Google
-					</AppButton>
-				) : (
-					<GoogleButton
-						onClick={handleGoogleSignIn}
-						label='Увійти через Google'
-						disabled={!authReady}
-						className='playerHud__googleButton'
-					/>
-				)}
-				{authError ? (
-					<p className='playerHud__authError'>{authError}</p>
-				) : null}
-				<p className='playerHud__name'>{playerName || 'Гість'}</p>
-				<p className='playerHud__score'>Бали: {score}</p>
-				<p className='playerHud__bonus'>
-					Бонус за всі emoji: {FULL_COLLECTION_BONUS}{' '}
-					{hasFullLabyrinthCollection
-						? '(отримано)'
-						: `(прогрес ${collectedLabyrinthCount}/${labyrinthCollectionTarget.length})`}
-				</p>
-				<Stack className='playerHud__collection'>
-					<p className='playerHud__collectionLabel'>Колекція</p>
-					<Stack
-						className='playerHud__collectionItems'
-						direction='row'
-					>
-						{visibleEmojis.length === 0 ? (
-							<span className='playerHud__empty'>
-								Поки порожньо
-							</span>
-						) : (
-							visibleEmojis.map((emoji) => (
-								<span key={emoji} className='playerHud__emoji'>
-									{emoji}
-								</span>
-							))
-						)}
-					</Stack>
-				</Stack>
-				<AppButton
-					type='button'
-					tone='secondary'
-					className='playerHud__reset'
-					onClick={resetProgress}
+			<Box className='playerHud' aria-live='polite'>
+				<Paper
+					elevation={8}
+					sx={{
+						p: 1.2,
+						borderRadius: 3,
+						border: '1px solid rgba(23, 49, 61, 0.14)',
+						backdropFilter: 'blur(16px)',
+						backgroundColor: 'rgba(255, 255, 255, 0.9)',
+						minWidth: 220,
+					}}
 				>
-					Скинути прогрес
-				</AppButton>
-			</Stack>
+					<Stack
+						direction='row'
+						spacing={1}
+						sx={{ alignItems: 'center' }}
+					>
+						<IconButton
+							onClick={() =>
+								setIsPlayerHudExpanded((current) => !current)
+							}
+							aria-label='Показати дані профілю'
+							size='small'
+						>
+							<Avatar
+								src={authUser?.photoURL ?? undefined}
+								alt='Аватар профілю'
+								sx={{
+									width: 42,
+									height: 42,
+									bgcolor: isGoogleSignedIn
+										? 'rgba(25, 118, 210, 0.14)'
+										: 'rgba(95, 143, 45, 0.14)',
+									color: isGoogleSignedIn
+										? 'primary.main'
+										: 'success.dark',
+								}}
+							>
+								{!authUser?.photoURL ? (
+									isGoogleSignedIn ? (
+										<GoogleIcon fontSize='small' />
+									) : (
+										<PersonOutlineRoundedIcon fontSize='small' />
+									)
+								) : null}
+							</Avatar>
+						</IconButton>
+
+						<Stack sx={{ minWidth: 0, flex: 1 }}>
+							<Typography
+								variant='subtitle2'
+								noWrap
+								sx={{ fontWeight: 800 }}
+							>
+								{displayName}
+							</Typography>
+							<Typography
+								variant='body2'
+								color='primary.main'
+								sx={{ fontWeight: 700 }}
+							>
+								Бали: {score}
+							</Typography>
+						</Stack>
+
+						<IconButton
+							onClick={() =>
+								setIsPlayerHudExpanded((current) => !current)
+							}
+							size='small'
+							aria-label='Розгорнути меню профілю'
+						>
+							{isPlayerHudExpanded ? (
+								<ExpandLessRoundedIcon fontSize='small' />
+							) : (
+								<ExpandMoreRoundedIcon fontSize='small' />
+							)}
+						</IconButton>
+					</Stack>
+
+					<Collapse
+						in={isPlayerHudExpanded}
+						timeout={180}
+						unmountOnExit
+					>
+						<Stack spacing={1.2} sx={{ pt: 1.1 }}>
+							<Chip
+								size='small'
+								label={
+									isGoogleSignedIn
+										? isCloudSyncEnabled
+											? 'Google підключено'
+											: 'Google: хмара вимкнена'
+										: 'Гість без збереження'
+								}
+								color={isGoogleSignedIn ? 'primary' : 'default'}
+								variant={
+									isGoogleSignedIn ? 'filled' : 'outlined'
+								}
+							/>
+
+							{authError ? (
+								<Alert severity='error' sx={{ py: 0.25 }}>
+									{authError}
+								</Alert>
+							) : null}
+
+							{isGoogleSignedIn ? (
+								<Button
+									variant='outlined'
+									color='primary'
+									startIcon={<LogoutRoundedIcon />}
+									onClick={handleGoogleSignOut}
+									disabled={!authReady}
+								>
+									Вийти з Google
+								</Button>
+							) : (
+								<Button
+									variant='contained'
+									color='primary'
+									startIcon={<LoginRoundedIcon />}
+									onClick={handleGoogleSignIn}
+									disabled={!authReady}
+									sx={{
+										textTransform: 'none',
+										fontWeight: 700,
+									}}
+								>
+									<GoogleIcon
+										sx={{ mr: 0.4 }}
+										fontSize='small'
+									/>
+									Увійти через Google
+								</Button>
+							)}
+
+							<Divider />
+
+							<Stack spacing={0.8}>
+								<Typography
+									variant='caption'
+									color='text.secondary'
+								>
+									Колекція emoji
+								</Typography>
+								<Typography
+									variant='body2'
+									sx={{ fontWeight: 700 }}
+								>
+									Бонус за всі emoji: {FULL_COLLECTION_BONUS}{' '}
+									({collectionProgressLabel})
+								</Typography>
+								<Stack
+									direction='row'
+									useFlexGap
+									sx={{ flexWrap: 'wrap', gap: 0.7 }}
+								>
+									{visibleEmojis.length === 0 ? (
+										<Chip
+											size='small'
+											label='Поки порожньо'
+											variant='outlined'
+										/>
+									) : (
+										visibleEmojis.map((emoji) => (
+											<Chip
+												key={emoji}
+												label={emoji}
+												size='small'
+												color='secondary'
+												variant='outlined'
+												sx={{
+													minWidth: 36,
+													'& .MuiChip-label': {
+														fontSize: '1rem',
+														lineHeight: 1.1,
+													},
+												}}
+											/>
+										))
+									)}
+								</Stack>
+							</Stack>
+
+							<Button
+								variant='outlined'
+								color='error'
+								startIcon={<RestartAltRoundedIcon />}
+								onClick={resetProgress}
+							>
+								Скинути прогрес
+							</Button>
+						</Stack>
+					</Collapse>
+				</Paper>
+			</Box>
 
 			<Suspense fallback={null}>
 				<Routes>
