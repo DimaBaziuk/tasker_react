@@ -59,6 +59,7 @@ const GamePage = lazy(() => import('./pages/GamePage'));
 const RoutineRoomPage = lazy(() => import('./pages/RoutineRoomPage'));
 const SafetyRoomPage = lazy(() => import('./pages/SafetyRoomPage'));
 const WordBuilderRoomPage = lazy(() => import('./pages/WordBuilderRoomPage'));
+const MathRoomPage = lazy(() => import('./pages/MathRoomPage'));
 
 const SCORE_BY_ROOM: Record<string, number> = {
 	'bright-start': 50,
@@ -66,6 +67,7 @@ const SCORE_BY_ROOM: Record<string, number> = {
 	'forest-labyrinth': 125,
 	'daily-routines': 0,
 	'safety-lab': 0,
+	'math-grid': 0,
 };
 
 const STORAGE_KEY = 'tasker-player-session';
@@ -73,6 +75,7 @@ const FULL_COLLECTION_BONUS = 400;
 const ROUTINE_ROOM_ID = 'daily-routines';
 const WORD_ROOM_ID = 'word-builder';
 const SAFETY_ROOM_ID = 'safety-lab';
+const MATH_ROOM_ID = 'math-grid';
 const BLOCKED_COUNTRY_CODES = getBlockedCountryCodes();
 
 type GeoAccessState = 'checking' | 'allowed' | 'blocked';
@@ -85,6 +88,7 @@ interface PlayerSession {
 	routineRoomScore: number;
 	wordRoomScore: number;
 	safetyRoomScore: number;
+	mathRoomScore: number;
 	consecutiveWins: number;
 	collectedEmojis: string[];
 }
@@ -136,6 +140,10 @@ const getInitialSession = (): PlayerSession | null => {
 				typeof parsed.safetyRoomScore === 'number'
 					? Math.max(0, Math.floor(parsed.safetyRoomScore))
 					: 0,
+			mathRoomScore:
+				typeof parsed.mathRoomScore === 'number'
+					? Math.max(0, Math.floor(parsed.mathRoomScore))
+					: 0,
 			consecutiveWins: Math.max(0, Math.floor(parsed.consecutiveWins)),
 			collectedEmojis,
 		};
@@ -161,6 +169,9 @@ const App = () => {
 	);
 	const [safetyRoomScore, setSafetyRoomScore] = useState(
 		initialSession?.safetyRoomScore ?? 0,
+	);
+	const [mathRoomScore, setMathRoomScore] = useState(
+		initialSession?.mathRoomScore ?? 0,
 	);
 	const [nameInput, setNameInput] = useState(
 		initialSession?.playerName ?? '',
@@ -271,6 +282,7 @@ const App = () => {
 				setRoutineRoomScore(savedProgress.routineRoomScore);
 				setWordRoomScore(savedProgress.wordRoomScore);
 				setSafetyRoomScore(savedProgress.safetyRoomScore);
+				setMathRoomScore(savedProgress.mathRoomScore);
 				setCollectedEmojis(savedProgress.collectedEmojis);
 				setPendingLevelEmojis([]);
 				consecutiveWinsRef.current = savedProgress.consecutiveWins;
@@ -388,6 +400,7 @@ const App = () => {
 			setRoutineRoomScore(0);
 			setWordRoomScore(0);
 			setSafetyRoomScore(0);
+			setMathRoomScore(0);
 			setCollectedEmojis([]);
 			setPendingLevelEmojis([]);
 			setAuthMode('guest');
@@ -443,6 +456,7 @@ const App = () => {
 		nextRoutineRoomScore: number,
 		nextWordRoomScore: number,
 		nextSafetyRoomScore: number,
+		nextMathRoomScore: number,
 		nextConsecutiveWins: number,
 		nextCollectedEmojis: string[],
 	) => {
@@ -462,6 +476,7 @@ const App = () => {
 			routineRoomScore: nextRoutineRoomScore,
 			wordRoomScore: nextWordRoomScore,
 			safetyRoomScore: nextSafetyRoomScore,
+			mathRoomScore: nextMathRoomScore,
 			consecutiveWins: nextConsecutiveWins,
 			collectedEmojis: nextCollectedEmojis,
 		};
@@ -475,6 +490,7 @@ const App = () => {
 				routineRoomScore: nextRoutineRoomScore,
 				wordRoomScore: nextWordRoomScore,
 				safetyRoomScore: nextSafetyRoomScore,
+				mathRoomScore: nextMathRoomScore,
 				consecutiveWins: nextConsecutiveWins,
 				collectedEmojis: nextCollectedEmojis,
 			}).catch((error: unknown) => {
@@ -513,6 +529,7 @@ const App = () => {
 				routineRoomScore,
 				wordRoomScore,
 				safetyRoomScore,
+				mathRoomScore,
 				0,
 				collectedEmojis,
 			);
@@ -554,6 +571,7 @@ const App = () => {
 					routineRoomScore,
 					wordRoomScore,
 					safetyRoomScore,
+					mathRoomScore,
 					0,
 					collectedEmojis,
 				);
@@ -578,6 +596,7 @@ const App = () => {
 					nextRoutineRoomScore,
 					wordRoomScore,
 					safetyRoomScore,
+					mathRoomScore,
 					consecutiveWinsRef.current,
 					collectedEmojis,
 				);
@@ -608,6 +627,7 @@ const App = () => {
 					routineRoomScore,
 					nextWordRoomScore,
 					safetyRoomScore,
+					mathRoomScore,
 					consecutiveWinsRef.current,
 					collectedEmojis,
 				);
@@ -638,6 +658,7 @@ const App = () => {
 					routineRoomScore,
 					wordRoomScore,
 					nextSafetyRoomScore,
+					mathRoomScore,
 					consecutiveWinsRef.current,
 					collectedEmojis,
 				);
@@ -645,6 +666,37 @@ const App = () => {
 
 			void trackEvent('safety_room_scored', {
 				safety_room_score: nextSafetyRoomScore,
+				total_score: nextScore,
+			});
+
+			return;
+		}
+
+		if (roomId === MATH_ROOM_ID) {
+			const nextMathRoomScore = Math.max(
+				0,
+				Math.floor(scoreOverride ?? SCORE_BY_ROOM[roomId] ?? 0),
+			);
+			const nextScore = score - mathRoomScore + nextMathRoomScore;
+			setScore(nextScore);
+			setMathRoomScore(nextMathRoomScore);
+			setPendingLevelEmojis([]);
+
+			if (playerName) {
+				persistSession(
+					playerName,
+					nextScore,
+					routineRoomScore,
+					wordRoomScore,
+					safetyRoomScore,
+					nextMathRoomScore,
+					consecutiveWinsRef.current,
+					collectedEmojis,
+				);
+			}
+
+			void trackEvent('math_room_scored', {
+				math_room_score: nextMathRoomScore,
 				total_score: nextScore,
 			});
 
@@ -691,6 +743,7 @@ const App = () => {
 				routineRoomScore,
 				wordRoomScore,
 				safetyRoomScore,
+				mathRoomScore,
 				nextWins,
 				nextCollectedEmojis,
 			);
@@ -707,6 +760,7 @@ const App = () => {
 				routineRoomScore,
 				wordRoomScore,
 				safetyRoomScore,
+				mathRoomScore,
 				0,
 				nextCollectedEmojis,
 			);
@@ -772,6 +826,7 @@ const App = () => {
 		setRoutineRoomScore(0);
 		setWordRoomScore(0);
 		setSafetyRoomScore(0);
+		setMathRoomScore(0);
 		setCollectedEmojis([]);
 		setPendingLevelEmojis([]);
 		setAuthMode(isGoogleUser ? 'google' : 'guest');
@@ -1057,6 +1112,12 @@ const App = () => {
 						}
 					/>
 					<Route
+						path='/math-room'
+						element={
+							<MathRoomPage onRoomOutcome={handleRoomOutcome} />
+						}
+					/>
+					<Route
 						path='/game/:roomId'
 						element={
 							<GamePage
@@ -1090,7 +1151,9 @@ const App = () => {
 					1 кімната: 50 балів, 2 кімната: 100 балів, 3 кімната: 125
 					балів, кімната "Щоденні справи": до 120 балів (по 40 за
 					ранок, обід і вечір), кімната "Словотвор": 5 балів за кожне
-					правильне слово, кімната "Безпека вдома": до 300 балів.
+					правильне слово, кімната "Безпека вдома": до 300 балів,
+					кімната "Математика": 7 балів за правильну клітинку (до
+					567).
 				</p>
 				{authUser ? null : (
 					<p className='playerForm__note'>
