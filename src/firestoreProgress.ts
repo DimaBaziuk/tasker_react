@@ -21,6 +21,7 @@ export interface FirestorePlayerProgress {
 	routineRoomScore: number;
 	wordRoomScore: number;
 	safetyRoomScore: number;
+	mathRoomScore: number;
 	consecutiveWins: number;
 	collectedEmojis: string[];
 }
@@ -84,6 +85,10 @@ const parseProgress = (
 		safetyRoomScore:
 			typeof data.safetyRoomScore === 'number'
 				? Math.max(0, Math.floor(data.safetyRoomScore))
+				: 0,
+		mathRoomScore:
+			typeof data.mathRoomScore === 'number'
+				? Math.max(0, Math.floor(data.mathRoomScore))
 				: 0,
 		consecutiveWins: Math.max(0, Math.floor(data.consecutiveWins)),
 		collectedEmojis,

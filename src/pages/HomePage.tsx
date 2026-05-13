@@ -45,6 +45,14 @@ const HomePage = ({ rooms }: HomePageProps) => {
 		navigate('/safety-room');
 	};
 
+	const handleOpenMathRoom = () => {
+		void trackEvent('select_room', {
+			room_id: 'math-grid',
+			room_type: 'math',
+		});
+		navigate('/math-room');
+	};
+
 	const handleOpenGameRoom = (roomId: string, difficultyLabel: string) => {
 		void trackEvent('select_room', {
 			room_id: roomId,
@@ -70,10 +78,11 @@ const HomePage = ({ rooms }: HomePageProps) => {
 				</Stack>
 
 				<Stack className='heroStats' direction='row'>
-					<span>6 кімнат</span>
+					<span>7 кімнат</span>
 					<span>Підказки рухів</span>
 					<span>
-						Рандомні перешкоди + слова + розпорядок дня + безпека
+						Лабіринти + слова + розпорядок дня + безпека +
+						математика
 					</span>
 				</Stack>
 			</header>
@@ -116,6 +125,27 @@ const HomePage = ({ rooms }: HomePageProps) => {
 						<span>3 секції</span>
 						<span>10 карток на секцію</span>
 						<span>До 300 балів</span>
+					</Stack>
+					<span className='roomCard__cta'>Відкрити кімнату</span>
+				</AppCard>
+
+				<AppCard
+					component='button'
+					className='roomCard roomCard--math'
+					onClick={handleOpenMathRoom}
+				>
+					<span className='roomCard__badge'>Нова кімната</span>
+					<span className='roomCard__emoji'>➗</span>
+					<h2>Математична сітка 9x9</h2>
+					<p>
+						У кожній клітинці є свій приклад. Натискай клітинку,
+						розв'язуй і перевіряй відповідь: правильна клітинка
+						зелена, неправильна червона.
+					</p>
+					<Stack className='roomCard__facts' direction='row'>
+						<span>81 приклад</span>
+						<span>1-4 клас</span>
+						<span>Майже рівний розподіл</span>
 					</Stack>
 					<span className='roomCard__cta'>Відкрити кімнату</span>
 				</AppCard>
