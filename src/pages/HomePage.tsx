@@ -53,6 +53,14 @@ const HomePage = ({ rooms }: HomePageProps) => {
 		navigate('/math-room');
 	};
 
+	const handleOpenCreativeRoom = () => {
+		void trackEvent('select_room', {
+			room_id: 'creative-studio',
+			room_type: 'creative',
+		});
+		navigate('/creative-room');
+	};
+
 	const handleOpenGameRoom = (roomId: string, difficultyLabel: string) => {
 		void trackEvent('select_room', {
 			room_id: roomId,
@@ -78,11 +86,11 @@ const HomePage = ({ rooms }: HomePageProps) => {
 				</Stack>
 
 				<Stack className='heroStats' direction='row'>
-					<span>7 кімнат</span>
+					<span>8 кімнат</span>
 					<span>Підказки рухів</span>
 					<span>
 						Лабіринти + слова + розпорядок дня + безпека +
-						математика
+						математика + творчість
 					</span>
 				</Stack>
 			</header>
@@ -146,6 +154,27 @@ const HomePage = ({ rooms }: HomePageProps) => {
 						<span>81 приклад</span>
 						<span>1-4 клас</span>
 						<span>Майже рівний розподіл</span>
+					</Stack>
+					<span className='roomCard__cta'>Відкрити кімнату</span>
+				</AppCard>
+
+				<AppCard
+					component='button'
+					className='roomCard roomCard--creative'
+					onClick={handleOpenCreativeRoom}
+				>
+					<span className='roomCard__badge'>Нова кімната</span>
+					<span className='roomCard__emoji'>🎨</span>
+					<h2>Кімната творчості</h2>
+					<p>
+						Малюй власні ідеї як у простому Paint: обирай колір,
+						товщину лінії, використовуй гумку та зберігай малюнок у
+						PNG.
+					</p>
+					<Stack className='roomCard__facts' direction='row'>
+						<span>Пензлик + гумка</span>
+						<span>Undo / Redo</span>
+						<span>Експорт PNG</span>
 					</Stack>
 					<span className='roomCard__cta'>Відкрити кімнату</span>
 				</AppCard>

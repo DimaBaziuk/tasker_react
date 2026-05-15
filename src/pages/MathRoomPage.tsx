@@ -219,7 +219,7 @@ const MathRoomPage = ({ onRoomOutcome }: MathRoomPageProps) => {
 						<span>4 клас: {gradeCounts[4]}</span>
 					</Stack>
 
-					<Stack className='actionRow'>
+					<Stack className='actionRow' sx={{ mt: 2 }}>
 						<AppButton
 							type='button'
 							tone='secondary'
