@@ -60,6 +60,7 @@ const RoutineRoomPage = lazy(() => import('./pages/RoutineRoomPage'));
 const SafetyRoomPage = lazy(() => import('./pages/SafetyRoomPage'));
 const WordBuilderRoomPage = lazy(() => import('./pages/WordBuilderRoomPage'));
 const MathRoomPage = lazy(() => import('./pages/MathRoomPage'));
+const CreativeRoomPage = lazy(() => import('./pages/CreativeRoomPage'));
 
 const SCORE_BY_ROOM: Record<string, number> = {
 	'bright-start': 50,
@@ -1116,6 +1117,10 @@ const App = () => {
 						element={
 							<MathRoomPage onRoomOutcome={handleRoomOutcome} />
 						}
+					/>
+					<Route
+						path='/creative-room'
+						element={<CreativeRoomPage />}
 					/>
 					<Route
 						path='/game/:roomId'
