@@ -32,7 +32,6 @@ import {
 	ROOM_EXIT,
 	calculateMonsterRoomScore,
 	createMonsterRoomRound,
-	getMonsterWalls,
 	runTurn,
 } from '../monster_room/engine';
 import type { Direction } from '../monster_room/types';
@@ -93,8 +92,8 @@ const MonsterMazeRoomPage = ({ onRoomOutcome }: MonsterMazeRoomPageProps) => {
 	const collisionResetRef = useRef<number | null>(null);
 
 	const wallSet = useMemo(
-		() => new Set(getMonsterWalls().map((wall) => `${wall.x}:${wall.y}`)),
-		[],
+		() => new Set(round.walls.map((wall) => `${wall.x}:${wall.y}`)),
+		[round.walls],
 	);
 	const collectibleLookup = useMemo(() => {
 		const lookup = new Map<string, string>();
