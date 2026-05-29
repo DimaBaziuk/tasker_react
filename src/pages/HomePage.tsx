@@ -96,10 +96,6 @@ const HomePage = ({ rooms }: HomePageProps) => {
 				<Stack className='heroStats' direction='row'>
 					<span>9 кімнат</span>
 					<span>Підказки рухів</span>
-					<span>
-						Лабіринти + слова + розпорядок дня + безпека +
-						математика + творчість + монстри
-					</span>
 				</Stack>
 			</header>
 
@@ -197,11 +193,11 @@ const HomePage = ({ rooms }: HomePageProps) => {
 					<h2>Monster Maze</h2>
 					<p>
 						Керуй героєм стрілками як у Pac-Man, збери 10 емодзі,
-						уникай 3 активних монстрів і знайди вихід у лабіринті.
+						уникай 2 активних монстрів і знайди вихід у лабіринті.
 					</p>
 					<Stack className='roomCard__facts' direction='row'>
 						<span>Сітка 9x9</span>
-						<span>3 монстри</span>
+						<span>2 монстри</span>
 						<span>10 емодзі + вихід</span>
 					</Stack>
 					<span className='roomCard__cta'>Відкрити кімнату</span>

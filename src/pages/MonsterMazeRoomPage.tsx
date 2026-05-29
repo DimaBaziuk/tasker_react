@@ -26,6 +26,7 @@ import KeyboardDoubleArrowRightRoundedIcon from '@mui/icons-material/KeyboardDou
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { trackEvent } from '../analytics';
 import {
+	MONSTER_COUNT,
 	MONSTER_GRID_SIZE,
 	MONSTER_REQUIRED_COLLECTIBLES,
 	MONSTER_ROOM_ID,
@@ -281,8 +282,8 @@ const MonsterMazeRoomPage = ({ onRoomOutcome }: MonsterMazeRoomPageProps) => {
 					<h1>Лабіринт з активними монстрами і виходом</h1>
 					<p className='heroLead'>
 						Керуй персонажем стрілками на клавіатурі або кнопками
-						нижче. Збери 10 емодзі й дійди до виходу, уникаючи трьох
-						монстрів.
+						нижче. Збери 10 емодзі й дійди до виходу, уникаючи
+						активних монстрів.
 					</p>
 				</Stack>
 
@@ -293,7 +294,7 @@ const MonsterMazeRoomPage = ({ onRoomOutcome }: MonsterMazeRoomPageProps) => {
 					<span>
 						Сітка: {MONSTER_GRID_SIZE}x{MONSTER_GRID_SIZE}
 					</span>
-					<span>Монстрів: 3</span>
+					<span>Монстрів: {MONSTER_COUNT}</span>
 					<span>Зібрано: {round.collectedCount}/10</span>
 					<AppButton
 						type='button'
@@ -483,6 +484,25 @@ const MonsterMazeRoomPage = ({ onRoomOutcome }: MonsterMazeRoomPageProps) => {
 					</Stack>
 				</AppCard>
 			</section>
+
+			<div
+				className='monsterMobilePad'
+				aria-label='Мобільне керування рухом'
+			>
+				{DIRECTION_CONTROLS.map((control) => (
+					<AppButton
+						key={`mobile-${control.direction}`}
+						type='button'
+						tone='secondary'
+						className={`monsterMobilePad__button monsterMobilePad__button--${control.direction}`}
+						onClick={() => handleTurn(control.direction)}
+						disabled={status !== 'playing'}
+						aria-label={`Рух: ${control.label}`}
+					>
+						{control.icon}
+					</AppButton>
+				))}
+			</div>
 
 			<AppDialog
 				open={showHelp}
