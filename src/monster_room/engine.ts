@@ -13,11 +13,12 @@ export const MONSTER_REQUIRED_COLLECTIBLES = 10;
 export const MONSTER_COUNT = 3;
 export const MONSTER_POINTS_PER_COLLECTIBLE = 10;
 export const MONSTER_EXIT_BONUS = 80;
+export const MONSTER_WALL_COUNT = 17;
 
 export const PLAYER_START: Point = { x: 0, y: 8 };
 export const ROOM_EXIT: Point = { x: 8, y: 0 };
 
-const WALLS: Point[] = [
+const DEFAULT_WALLS: Point[] = [
 	{ x: 1, y: 1 },
 	{ x: 2, y: 1 },
 	{ x: 4, y: 1 },
@@ -95,15 +96,11 @@ const shuffle = <T,>(items: T[]): T[] => {
 	return next;
 };
 
-const createWallSet = () => new Set(WALLS.map((wall) => pointKey(wall)));
-
-const WALL_SET = createWallSet();
-
-const getAllFreeCells = (): Point[] => {
+const getAllFreeCells = (wallSet: Set<string>): Point[] => {
 	const forbidden = new Set<string>([
 		pointKey(PLAYER_START),
 		pointKey(ROOM_EXIT),
-		...WALL_SET,
+		...wallSet,
 		...MONSTER_SPAWNS.map(pointKey),
 	]);
 	const cells: Point[] = [];
@@ -120,8 +117,67 @@ const getAllFreeCells = (): Point[] => {
 	return cells;
 };
 
-const buildCollectibles = (): Collectible[] => {
-	const cells = shuffle(getAllFreeCells()).slice(0, MONSTER_REQUIRED_COLLECTIBLES);
+const hasPathToExit = (wallSet: Set<string>): boolean => {
+	const queue: Point[] = [PLAYER_START];
+	const visited = new Set<string>([pointKey(PLAYER_START)]);
+
+	while (queue.length > 0) {
+		const current = queue.shift()!;
+
+		if (isSamePoint(current, ROOM_EXIT)) {
+			return true;
+		}
+
+		for (const direction of Object.keys(DIRECTIONS) as Direction[]) {
+			const next = movePoint(current, direction);
+			const nextKey = pointKey(next);
+
+			if (!isInsideBoard(next) || wallSet.has(nextKey) || visited.has(nextKey)) {
+				continue;
+			}
+
+			visited.add(nextKey);
+			queue.push(next);
+		}
+	}
+
+	return false;
+};
+
+const generateWalls = (): Point[] => {
+	const forbidden = new Set<string>([
+		pointKey(PLAYER_START),
+		pointKey(ROOM_EXIT),
+		...MONSTER_SPAWNS.map(pointKey),
+	]);
+	const candidates: Point[] = [];
+
+	for (let y = 0; y < MONSTER_GRID_SIZE; y += 1) {
+		for (let x = 0; x < MONSTER_GRID_SIZE; x += 1) {
+			const point = { x, y };
+			if (!forbidden.has(pointKey(point))) {
+				candidates.push(point);
+			}
+		}
+	}
+
+	for (let attempt = 0; attempt < 300; attempt += 1) {
+		const walls = shuffle(candidates).slice(0, MONSTER_WALL_COUNT);
+		const wallSet = new Set(walls.map((wall) => pointKey(wall)));
+
+		if (hasPathToExit(wallSet)) {
+			return walls;
+		}
+	}
+
+	return DEFAULT_WALLS;
+};
+
+const buildCollectibles = (wallSet: Set<string>): Collectible[] => {
+	const cells = shuffle(getAllFreeCells(wallSet)).slice(
+		0,
+		MONSTER_REQUIRED_COLLECTIBLES,
+	);
 	const emojis = shuffle([...COLLECTIBLE_EMOJI_POOL]).slice(
 		0,
 		MONSTER_REQUIRED_COLLECTIBLES,
@@ -145,17 +201,18 @@ const buildMonsters = (): Monster[] => {
 	}));
 };
 
-const isBlockedPoint = (point: Point) =>
-	!isInsideBoard(point) || WALL_SET.has(pointKey(point));
+const isBlockedPoint = (point: Point, wallSet: Set<string>) =>
+	!isInsideBoard(point) || wallSet.has(pointKey(point));
 
 const pickMonsterDirection = (
 	monsterPosition: Point,
 	playerPosition: Point,
+	wallSet: Set<string>,
 ): Direction => {
 	const candidates = shuffle(Object.keys(DIRECTIONS) as Direction[]).filter(
 		(direction) => {
 			const next = movePoint(monsterPosition, direction);
-			return !isBlockedPoint(next);
+			return !isBlockedPoint(next, wallSet);
 		},
 	);
 
@@ -183,12 +240,17 @@ const pickMonsterDirection = (
 const moveMonsters = (
 	monsters: Monster[],
 	playerPosition: Point,
+	wallSet: Set<string>,
 ): Monster[] => {
 	return monsters.map((monster) => {
-		const direction = pickMonsterDirection(monster.position, playerPosition);
+		const direction = pickMonsterDirection(
+			monster.position,
+			playerPosition,
+			wallSet,
+		);
 		const nextPosition = movePoint(monster.position, direction);
 
-		if (isBlockedPoint(nextPosition)) {
+		if (isBlockedPoint(nextPosition, wallSet)) {
 			return monster;
 		}
 
@@ -225,8 +287,6 @@ const hasMonsterCollision = (
 	monsters: Monster[],
 ): boolean => monsters.some((monster) => isSamePoint(monster.position, playerPosition));
 
-export const getMonsterWalls = (): Point[] => [...WALLS];
-
 export const calculateMonsterRoomScore = (collectedCount: number) => {
 	const clampedCollected = Math.min(
 		MONSTER_REQUIRED_COLLECTIBLES,
@@ -243,22 +303,29 @@ export const calculateMonsterRoomScore = (collectedCount: number) => {
 	);
 };
 
-export const createMonsterRoomRound = (): MonsterRoomRoundState => ({
-	playerPosition: PLAYER_START,
-	monsters: buildMonsters(),
-	collectibles: buildCollectibles(),
-	collectedCount: 0,
-	hasEscaped: false,
-	tick: 0,
-});
+export const createMonsterRoomRound = (): MonsterRoomRoundState => {
+	const walls = generateWalls();
+	const wallSet = new Set(walls.map((wall) => pointKey(wall)));
+
+	return {
+		playerPosition: PLAYER_START,
+		walls,
+		monsters: buildMonsters(),
+		collectibles: buildCollectibles(wallSet),
+		collectedCount: 0,
+		hasEscaped: false,
+		tick: 0,
+	};
+};
 
 export const runTurn = (
 	state: MonsterRoomRoundState,
 	direction: Direction,
 ): TurnResult => {
+	const wallSet = new Set(state.walls.map((wall) => pointKey(wall)));
 	const nextPlayerPosition = movePoint(state.playerPosition, direction);
 
-	if (isBlockedPoint(nextPlayerPosition)) {
+	if (isBlockedPoint(nextPlayerPosition, wallSet)) {
 		return {
 			state,
 			event: 'blocked',
@@ -288,7 +355,11 @@ export const runTurn = (
 		};
 	}
 
-	const movedMonsters = moveMonsters(state.monsters, nextPlayerPosition);
+	const movedMonsters = moveMonsters(
+		state.monsters,
+		nextPlayerPosition,
+		wallSet,
+	);
 
 	if (hasMonsterCollision(nextPlayerPosition, movedMonsters)) {
 		return {

@@ -20,6 +20,7 @@ export interface Collectible {
 
 export interface MonsterRoomRoundState {
 	playerPosition: Point;
+	walls: Point[];
 	monsters: Monster[];
 	collectibles: Collectible[];
 	collectedCount: number;
