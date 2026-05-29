@@ -8,8 +8,7 @@ import { getFirestore, type Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
 	apiKey:
-		import.meta.env.VITE_FIREBASE_API_KEY ??
-		'AIzaSyBmn0eut8xX0POqBcBAOz8P5mriT7xl4vo',
+		import.meta.env.VITE_FIREBASE_API_KEY ?? '',
 	authDomain:
 		import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ??
 		'school-game-basic.firebaseapp.com',
