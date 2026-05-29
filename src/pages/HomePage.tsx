@@ -61,6 +61,14 @@ const HomePage = ({ rooms }: HomePageProps) => {
 		navigate('/creative-room');
 	};
 
+	const handleOpenMonsterRoom = () => {
+		void trackEvent('select_room', {
+			room_id: 'monster-maze',
+			room_type: 'monster_maze',
+		});
+		navigate('/monster-room');
+	};
+
 	const handleOpenGameRoom = (roomId: string, difficultyLabel: string) => {
 		void trackEvent('select_room', {
 			room_id: roomId,
@@ -86,11 +94,11 @@ const HomePage = ({ rooms }: HomePageProps) => {
 				</Stack>
 
 				<Stack className='heroStats' direction='row'>
-					<span>8 кімнат</span>
+					<span>9 кімнат</span>
 					<span>Підказки рухів</span>
 					<span>
 						Лабіринти + слова + розпорядок дня + безпека +
-						математика + творчість
+						математика + творчість + монстри
 					</span>
 				</Stack>
 			</header>
@@ -175,6 +183,26 @@ const HomePage = ({ rooms }: HomePageProps) => {
 						<span>Пензлик + гумка</span>
 						<span>Undo / Redo</span>
 						<span>Експорт PNG</span>
+					</Stack>
+					<span className='roomCard__cta'>Відкрити кімнату</span>
+				</AppCard>
+
+				<AppCard
+					component='button'
+					className='roomCard roomCard--monster'
+					onClick={handleOpenMonsterRoom}
+				>
+					<span className='roomCard__badge'>Нова кімната</span>
+					<span className='roomCard__emoji'>👾</span>
+					<h2>Monster Maze</h2>
+					<p>
+						Керуй героєм стрілками як у Pac-Man, збери 10 емодзі,
+						уникай 3 активних монстрів і знайди вихід у лабіринті.
+					</p>
+					<Stack className='roomCard__facts' direction='row'>
+						<span>Сітка 9x9</span>
+						<span>3 монстри</span>
+						<span>10 емодзі + вихід</span>
 					</Stack>
 					<span className='roomCard__cta'>Відкрити кімнату</span>
 				</AppCard>

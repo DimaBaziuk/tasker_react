@@ -61,6 +61,7 @@ const SafetyRoomPage = lazy(() => import('./pages/SafetyRoomPage'));
 const WordBuilderRoomPage = lazy(() => import('./pages/WordBuilderRoomPage'));
 const MathRoomPage = lazy(() => import('./pages/MathRoomPage'));
 const CreativeRoomPage = lazy(() => import('./pages/CreativeRoomPage'));
+const MonsterMazeRoomPage = lazy(() => import('./pages/MonsterMazeRoomPage'));
 
 const SCORE_BY_ROOM: Record<string, number> = {
 	'bright-start': 50,
@@ -69,6 +70,7 @@ const SCORE_BY_ROOM: Record<string, number> = {
 	'daily-routines': 0,
 	'safety-lab': 0,
 	'math-grid': 0,
+	'monster-maze': 0,
 };
 
 const STORAGE_KEY = 'tasker-player-session';
@@ -77,6 +79,7 @@ const ROUTINE_ROOM_ID = 'daily-routines';
 const WORD_ROOM_ID = 'word-builder';
 const SAFETY_ROOM_ID = 'safety-lab';
 const MATH_ROOM_ID = 'math-grid';
+const MONSTER_ROOM_ID = 'monster-maze';
 const BLOCKED_COUNTRY_CODES = getBlockedCountryCodes();
 
 type GeoAccessState = 'checking' | 'allowed' | 'blocked';
@@ -90,6 +93,7 @@ interface PlayerSession {
 	wordRoomScore: number;
 	safetyRoomScore: number;
 	mathRoomScore: number;
+	monsterRoomScore: number;
 	consecutiveWins: number;
 	collectedEmojis: string[];
 }
@@ -145,6 +149,10 @@ const getInitialSession = (): PlayerSession | null => {
 				typeof parsed.mathRoomScore === 'number'
 					? Math.max(0, Math.floor(parsed.mathRoomScore))
 					: 0,
+			monsterRoomScore:
+				typeof parsed.monsterRoomScore === 'number'
+					? Math.max(0, Math.floor(parsed.monsterRoomScore))
+					: 0,
 			consecutiveWins: Math.max(0, Math.floor(parsed.consecutiveWins)),
 			collectedEmojis,
 		};
@@ -173,6 +181,9 @@ const App = () => {
 	);
 	const [mathRoomScore, setMathRoomScore] = useState(
 		initialSession?.mathRoomScore ?? 0,
+	);
+	const [monsterRoomScore, setMonsterRoomScore] = useState(
+		initialSession?.monsterRoomScore ?? 0,
 	);
 	const [nameInput, setNameInput] = useState(
 		initialSession?.playerName ?? '',
@@ -284,6 +295,7 @@ const App = () => {
 				setWordRoomScore(savedProgress.wordRoomScore);
 				setSafetyRoomScore(savedProgress.safetyRoomScore);
 				setMathRoomScore(savedProgress.mathRoomScore);
+				setMonsterRoomScore(savedProgress.monsterRoomScore);
 				setCollectedEmojis(savedProgress.collectedEmojis);
 				setPendingLevelEmojis([]);
 				consecutiveWinsRef.current = savedProgress.consecutiveWins;
@@ -402,6 +414,7 @@ const App = () => {
 			setWordRoomScore(0);
 			setSafetyRoomScore(0);
 			setMathRoomScore(0);
+			setMonsterRoomScore(0);
 			setCollectedEmojis([]);
 			setPendingLevelEmojis([]);
 			setAuthMode('guest');
@@ -458,6 +471,7 @@ const App = () => {
 		nextWordRoomScore: number,
 		nextSafetyRoomScore: number,
 		nextMathRoomScore: number,
+		nextMonsterRoomScore: number,
 		nextConsecutiveWins: number,
 		nextCollectedEmojis: string[],
 	) => {
@@ -478,6 +492,7 @@ const App = () => {
 			wordRoomScore: nextWordRoomScore,
 			safetyRoomScore: nextSafetyRoomScore,
 			mathRoomScore: nextMathRoomScore,
+			monsterRoomScore: nextMonsterRoomScore,
 			consecutiveWins: nextConsecutiveWins,
 			collectedEmojis: nextCollectedEmojis,
 		};
@@ -492,6 +507,7 @@ const App = () => {
 				wordRoomScore: nextWordRoomScore,
 				safetyRoomScore: nextSafetyRoomScore,
 				mathRoomScore: nextMathRoomScore,
+				monsterRoomScore: nextMonsterRoomScore,
 				consecutiveWins: nextConsecutiveWins,
 				collectedEmojis: nextCollectedEmojis,
 			}).catch((error: unknown) => {
@@ -531,6 +547,7 @@ const App = () => {
 				wordRoomScore,
 				safetyRoomScore,
 				mathRoomScore,
+				monsterRoomScore,
 				0,
 				collectedEmojis,
 			);
@@ -573,6 +590,7 @@ const App = () => {
 					wordRoomScore,
 					safetyRoomScore,
 					mathRoomScore,
+					monsterRoomScore,
 					0,
 					collectedEmojis,
 				);
@@ -598,6 +616,7 @@ const App = () => {
 					wordRoomScore,
 					safetyRoomScore,
 					mathRoomScore,
+					monsterRoomScore,
 					consecutiveWinsRef.current,
 					collectedEmojis,
 				);
@@ -629,6 +648,7 @@ const App = () => {
 					nextWordRoomScore,
 					safetyRoomScore,
 					mathRoomScore,
+					monsterRoomScore,
 					consecutiveWinsRef.current,
 					collectedEmojis,
 				);
@@ -660,6 +680,7 @@ const App = () => {
 					wordRoomScore,
 					nextSafetyRoomScore,
 					mathRoomScore,
+					monsterRoomScore,
 					consecutiveWinsRef.current,
 					collectedEmojis,
 				);
@@ -691,6 +712,7 @@ const App = () => {
 					wordRoomScore,
 					safetyRoomScore,
 					nextMathRoomScore,
+					monsterRoomScore,
 					consecutiveWinsRef.current,
 					collectedEmojis,
 				);
@@ -698,6 +720,38 @@ const App = () => {
 
 			void trackEvent('math_room_scored', {
 				math_room_score: nextMathRoomScore,
+				total_score: nextScore,
+			});
+
+			return;
+		}
+
+		if (roomId === MONSTER_ROOM_ID) {
+			const nextMonsterRoomScore = Math.max(
+				0,
+				Math.floor(scoreOverride ?? SCORE_BY_ROOM[roomId] ?? 0),
+			);
+			const nextScore = score - monsterRoomScore + nextMonsterRoomScore;
+			setScore(nextScore);
+			setMonsterRoomScore(nextMonsterRoomScore);
+			setPendingLevelEmojis([]);
+
+			if (playerName) {
+				persistSession(
+					playerName,
+					nextScore,
+					routineRoomScore,
+					wordRoomScore,
+					safetyRoomScore,
+					mathRoomScore,
+					nextMonsterRoomScore,
+					consecutiveWinsRef.current,
+					collectedEmojis,
+				);
+			}
+
+			void trackEvent('monster_room_scored', {
+				monster_room_score: nextMonsterRoomScore,
 				total_score: nextScore,
 			});
 
@@ -745,6 +799,7 @@ const App = () => {
 				wordRoomScore,
 				safetyRoomScore,
 				mathRoomScore,
+				monsterRoomScore,
 				nextWins,
 				nextCollectedEmojis,
 			);
@@ -762,6 +817,7 @@ const App = () => {
 				wordRoomScore,
 				safetyRoomScore,
 				mathRoomScore,
+				monsterRoomScore,
 				0,
 				nextCollectedEmojis,
 			);
@@ -828,6 +884,7 @@ const App = () => {
 		setWordRoomScore(0);
 		setSafetyRoomScore(0);
 		setMathRoomScore(0);
+		setMonsterRoomScore(0);
 		setCollectedEmojis([]);
 		setPendingLevelEmojis([]);
 		setAuthMode(isGoogleUser ? 'google' : 'guest');
@@ -1119,6 +1176,14 @@ const App = () => {
 						}
 					/>
 					<Route
+						path='/monster-room'
+						element={
+							<MonsterMazeRoomPage
+								onRoomOutcome={handleRoomOutcome}
+							/>
+						}
+					/>
+					<Route
 						path='/creative-room'
 						element={<CreativeRoomPage />}
 					/>
@@ -1158,7 +1223,8 @@ const App = () => {
 					ранок, обід і вечір), кімната "Словотвор": 5 балів за кожне
 					правильне слово, кімната "Безпека вдома": до 300 балів,
 					кімната "Математика": 7 балів за правильну клітинку (до
-					567).
+					567), кімната "Monster Maze": до 180 балів (10 емодзі +
+					бонус за вихід).
 				</p>
 				{authUser ? null : (
 					<p className='playerForm__note'>
