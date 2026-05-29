@@ -10,9 +10,9 @@ import type {
 export const MONSTER_ROOM_ID = 'monster-maze';
 export const MONSTER_GRID_SIZE = 9;
 export const MONSTER_REQUIRED_COLLECTIBLES = 10;
-export const MONSTER_COUNT = 3;
+export const MONSTER_COUNT = 2;
 export const MONSTER_POINTS_PER_COLLECTIBLE = 10;
-export const MONSTER_EXIT_BONUS = 80;
+export const MONSTER_EXIT_BONUS = 200;
 export const MONSTER_WALL_COUNT = 17;
 
 export const PLAYER_START: Point = { x: 0, y: 8 };

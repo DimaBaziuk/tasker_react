@@ -857,7 +857,7 @@ button:disabled {
 
 .monsterCell__collectible {
 	font-size: 1rem;
-	op: 62%;
+	top: 62%;
 }
 
 .monsterCell__monster {
@@ -885,6 +885,18 @@ button:disabled {
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: 10px;
 	margin-top: 2px;
+}
+
+.monsterMobilePad {
+	display: none;
+}
+
+.monsterMobilePad__button {
+	min-width: 0;
+	width: 56px;
+	height: 56px;
+	padding: 0;
+	border-radius: 16px;
 }
 
 .creativeRoom {
@@ -1948,7 +1960,49 @@ button:disabled {
 	}
 
 	.monsterControls {
-		grid-template-columns: 1fr;
+		display: none;
+	}
+
+	.monsterRoom {
+		padding-bottom: 104px;
+	}
+
+	.monsterMobilePad {
+		position: fixed;
+		left: 50%;
+		bottom: calc(10px + env(safe-area-inset-bottom));
+		transform: translateX(-50%);
+		z-index: 140;
+		display: grid;
+		grid-template-columns: repeat(3, 56px);
+		grid-template-rows: repeat(2, 56px);
+		gap: 8px;
+		padding: 10px;
+		border-radius: 18px;
+		border: 1px solid rgba(23, 49, 61, 0.2);
+		background: rgba(255, 255, 255, 0.92);
+		backdrop-filter: blur(10px);
+		box-shadow: 0 18px 32px rgba(23, 49, 61, 0.22);
+	}
+
+	.monsterMobilePad__button--up {
+		grid-column: 2;
+		grid-row: 1;
+	}
+
+	.monsterMobilePad__button--left {
+		grid-column: 1;
+		grid-row: 2;
+	}
+
+	.monsterMobilePad__button--down {
+		grid-column: 2;
+		grid-row: 2;
+	}
+
+	.monsterMobilePad__button--right {
+		grid-column: 3;
+		grid-row: 2;
 	}
 
 	.board {
